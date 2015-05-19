@@ -1,0 +1,52 @@
+<html>
+
+<head>
+    <title>Chainwork.js Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src="chainwork.js"></script>
+    <script src="components-core.js"></script>
+    <script src="components-more.js"></script>
+</head>
+
+<body>
+    <button onclick="chain.play();">Call chain</button>
+    <script>
+    var bool = true;
+    var chain = new ChainWork({
+        autoPlay: true,
+        debug: true
+    });
+
+    chain.add({
+        componentName: 'facebookInit',
+        settings: {
+            appId: '115378765262567',
+        }
+    });
+
+    chain.pause();
+
+    chain.if(
+        function() {
+            return bool
+        }, {
+            componentName: 'fbFeed',
+            settings: {
+                params: {
+                    method: 'feed',
+                    name: 'Name',
+                    caption: 'caption',
+                    link: 'https://github.com/Andrinoid/chainwork/',
+                    picture: 'https://apps.tweecode.com/custom/obeurovision2015/images/feed.png',
+                    description: 'Description.',
+                },
+                onPublished: function(rsp) {},
+                onDeclined: function(rsp) {},
+            }
+        }
+    );
+    
+    </script>
+</body>
+
+</html>
