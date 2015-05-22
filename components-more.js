@@ -136,10 +136,11 @@ components.fbFeed = {
             description: null,
         },
         onPublished: null,
-        onDeclined: null
+        onDeclined: null,
+        forceRun: null
     },
      pre: function() {
-        if(this.parent.caller !== 'user') {
+        if(this.parent.caller !== 'user' && !this.settings.forceRun) {
             this.parent.stop();
             console.warn('CHAIN WARNING: Facebook login must be triggered by user action to prevent popupblock');
             return false;
@@ -312,10 +313,10 @@ components.collectForm = {
             }
         };
 
-        var validateValue = function(key, val, obj) {
-            if(!val) {
+        var validateValue = function(key, val, obj, isRequired) {
+            if(!val&& isRequired) {
                 errors.push(obj);
-            }
+             }
             //check for special validation and if it does not pass shout about it
             try {
                 if(!self.settings.validations[key](val)) {
@@ -341,9 +342,10 @@ components.collectForm = {
         };
         for(var i = 0; i < ins.length; i++) {
             var inputObj = {}
+            var isRequired = ins[i].getAttribute('required') === 'required'
             validateKey(ins[i].name);
             inputObj[ins[i].name] = ins[i].value;
-            validateValue(ins[i].name, ins[i].value, inputObj);
+            validateValue(ins[i].name, ins[i].value, inputObj, isRequired);
             collection[ins[i].name] = ins[i].value;
         }
         if(errors.length) {
@@ -607,5 +609,4 @@ components.imagePreload = {
         }
     }
 };
-
 
