@@ -72,6 +72,7 @@ components.fbLogin = {
     },
     pre: function() {
         if(this.parent.caller !== 'user' && !this.settings.forceRun) {
+            debugger;
             this.parent.stop();
             console.warn('CHAIN WARNING: Facebook login must be triggered by user action to prevent popupblock. Its best practice to put pause before');
             return false;
@@ -258,6 +259,7 @@ components.collectForm = {
         validation is automatic. but certain names of the input elements can request certain validation rules.
         special names are listed bellow
             socialId -> checks length 10
+            email
         its possible to override validation in settings.validation
     */
     name: 'collectForm',
@@ -299,11 +301,22 @@ components.collectForm = {
                 }
             }
         },
-        onError: function() {}
+        onError: function() {},
+        onComplete: function() {}
     },
     job: function() {
         var self = this;
-        var formElm = document.querySelector('#'+this.settings.formElement);
+        var normalizeElement = function(element) {
+            var type = typeOf(element);
+            if(type === 'element')
+                return element;
+            if(element instanceof jQuery)
+                return element[0];
+            if(type === 'string') {
+                return document.querySelector(element) || document.querySelector('#' + element) || document.querySelector('.' + element);
+            }
+        };
+        var formElm = normalizeElement(this.settings.formElement);
         var ins = formElm.querySelectorAll('input');
         var errors = [];
         var collection = {};
@@ -314,7 +327,7 @@ components.collectForm = {
         };
 
         var validateValue = function(key, val, obj, isRequired) {
-            if(!val&& isRequired) {
+            if(!val && isRequired) {
                 errors.push(obj);
              }
             //check for special validation and if it does not pass shout about it
@@ -354,8 +367,8 @@ components.collectForm = {
              return false;
         }
         this.provides.collectForm = collection;
+        this.settings.onComplete(collection);
         this.parent.componentDone();
-       
     },
 
 };
