@@ -584,6 +584,7 @@ components.imagePreload = {
     name: 'imagePreload',
     settings: {
         images: null,
+        prefix: null,
         each: function(counter) {}
     },
     job: function() {
@@ -595,8 +596,14 @@ components.imagePreload = {
         for(var i = 0; i<images.length; i++) {
             try {
                 var img = new Image();
-                img.src = images[i];
-
+                if(this.settings.prefix) {
+                    //add trailing slash if doesn't exists
+                    var prefix = this.settings.prefix.replace(/\/?$/, '/');
+                }
+                else {
+                    prefix = '';
+                }
+                img.src = prefix + images[i];
                 img.onload = function() {
                     counter++;
                     percent = (counter/total)*100;
@@ -617,9 +624,9 @@ components.imagePreload = {
                     }
                 }
             } catch(err) {
+                console.log(err);
                 //pass
             }
         }
     }
 };
-
