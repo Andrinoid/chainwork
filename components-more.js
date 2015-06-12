@@ -165,6 +165,22 @@ components.fbFeed = {
     },
 },
 
+// chain.add({
+//     componentName: 'sendMail',
+//     settings: {
+//         apiKey: '4cV-y5Bk1O_7I8AcvyVlqQ',
+//         sender: 'sender@sender.com',
+//         subject: 'ÓB-vision',
+//         recivers: function() {
+//             return $('input[name="email"]').val();
+               //return 'person1@email.com, person2@email.com';  
+//         },
+//         htmlBody: function() {
+//             var html = $('.value').eq(0).html();
+//             return html; 
+//         }
+//     },
+// });
 components.sendMail = {
     name: 'sendMail',
     requirements: [], //needs some rethinking
@@ -179,25 +195,27 @@ components.sendMail = {
 
     job: function() {
         var self = this;
-        var findEmail = function() {
-            _.each(self.collection, function(obj) {
-                _.each(obj, function(val, key) {
-                    if(key === 'email')
-                        return val;
-                });
+        
+        var resolveRecivers = function() {
+            var emailsStr = self.settings.reciver();
+            console.log(emailsStr);
+            var emailList = emailsStr.split(',');
+            return _.map(emailList, function(item) {
+                return {'email': item};
             });
         };
 
         var m = new mandrill.Mandrill(this.settings.apiKey);//4cV-y5Bk1O_7I8AcvyVlqQ
         var sender = this.settings.sender;
         var subject = this.settings.subject;
-        var receiver = this.settings.reciver();
+        var recivers = resolveRecivers();
         var htmlBody = this.settings.htmlBody();
+        var isDone = false;
 
         var params = {
-                "message": {
+            "message": {
                 "from_email": sender,
-                "to":[{"email":receiver}],
+                "to": recivers,
                 "subject": subject,
                 "html": htmlBody,
                 "autotext": true, //turns html content to plaintext if mailclient does not support html
@@ -213,7 +231,10 @@ components.sendMail = {
                     console.warn('email failed. Reject reason: '+ rsp.reject_reason);
                 }
                 else {
-                    self.parent.componentDone();
+                    if(!isDone) {
+                        self.parent.componentDone();
+                        isDone = true;
+                    }
                 }
             }
         }, function(err) {
@@ -221,6 +242,16 @@ components.sendMail = {
         });
     }
 },
+
+//Example usage
+// chain.add({
+//     componentName: 'firebaseSave',
+//     settings: {
+//         dataRefUrl: 'https://YOURAPP.firebaseio.com/',
+//         prefix: 'firebaseProject',
+//         //customCollection: {foo: 'bar'} //NOTE this overrides the global collection
+//     }
+// });
 
 components.firebaseSave = {
     name: 'firebaseSave',
@@ -230,6 +261,10 @@ components.firebaseSave = {
     settings: {
         dataRefUrl: null, //new Firebase('https://chater.firebaseio.com/');
         prefix: null,
+        suffix: '/entries',
+        customCollection: null,
+        customId: null,
+        customChildName: null
     },
     job: function() {
         var self = this;
@@ -238,18 +273,115 @@ components.firebaseSave = {
             return;
         }
 
-        var dataRef = new Firebase(this.settings.dataRefUrl + this.settings.prefix + '/entries');
+        var dataRef = new Firebase(this.settings.dataRefUrl + this.settings.prefix + this.settings.suffix);
         var counterRef = new Firebase(this.settings.dataRefUrl + this.settings.prefix + '/counter');
        
         ////////##################            
         //TODO clean collection before trying to save so firebase wont throw error
         ////////##################
-        dataRef.push(this.parent.collection);
+        var instanceId;
+        if(this.settings.customCollection) {
+            //instanceId = dataRef.push(this.settings.customCollection);
+            instanceId = dataRef.child(this.settings.customId);
+            instanceId.child(this.settings.customChildName).set(this.settings.customCollection);
+        }
+        else {
+            instanceId = dataRef.push(this.parent.collection);
+        }
         //This is a counter. Counts records
         counterRef.transaction(function (current_value) {
-          return (current_value || 0) + 1;
+            return (current_value || 0) + 1;
         });
+        instanceId.child('timestamp').set(Firebase.ServerValue.TIMESTAMP);
         this.parent.componentDone();  
+    }
+};
+
+//BETA
+components.firebaseIsAuth = {
+    name: 'firebaseIsAuth',
+    requirements: [],
+    dependsOn: [],
+    provides: {},
+    settings: {
+        dataRefUrl: null,
+        onComplete: function() {}
+    },
+    job: function() {
+        var self = this;
+        var fire = new Firebase(this.settings.dataRefUrl);
+        fire.onAuth(function(authData) {
+            if (authData) {
+                self.settings.onComplete(authData)
+                self.parent.componentDone();
+                return false;
+            }
+            else {
+                self.settings.onComplete('not authenticated');
+            }
+        });
+    }
+};
+
+
+//BETA
+/*
+.add({
+    componentName: 'firebaseAuth',
+    settings: {
+        dataRefUrl: 'https://elma.firebaseio.com/',
+        email: function() {return userData.email},
+        password: function() {return userData.password},
+    }
+})
+*/
+components.firebaseAuth = {
+    name: 'firebaseAuth',
+    requirements: [],
+    dependsOn: [],
+    provides: {},
+    settings: {
+        dataRefUrl: null, 
+        email: function(){},
+        password: function(){},
+        authType: 'authWithPassword',
+        //authType: 'authAnonymously',
+        //more types shall be added
+        rememberMe: true,
+        onError: function() {}
+    },
+    job: function() {
+        var self = this;
+        var fire = new Firebase(this.settings.dataRefUrl);
+        
+        if(this.settings.authType === 'authWithPassword') {
+            fire.authWithPassword({
+                email: this.settings.email(), 
+                password: this.settings.password(),
+                rememberMe: this.settings.rememberMe
+            }, function(error, authData) {
+                if(error){
+                    self.settings.onError(error);
+                }
+                else {
+                    self.parent.componentDone();  
+                }
+            });
+        }
+        else if(this.settings.authType === 'authAnonymously') {
+            fire.authAnonymously(function(error, authData) {
+                if (error) {
+                    self.settings.onError(error);
+                } 
+                else {
+                    console.log("Authenticated successfully with payload:", authData);
+                }
+            });
+        }
+        else {
+            throw 'Firebase Auth is missing authtype';
+        }
+        
     }
 };
 
@@ -572,12 +704,15 @@ chain.add({
     componentName: 'imagePreload',
     settings: {
         images: ['shadow.png', 'pizza1.png', 'pizza2.png', 'pizza3.png', , 'pizza4.png'],
+        prefix: 'images/menu'
         each: function(counter, percent) {
             console.log(counter, percent+'%');
         }
     }
 
 });
+
+notes: prefix can optionaly have tailings slash, its added anyway
 ...
 */
 components.imagePreload = {
@@ -585,7 +720,8 @@ components.imagePreload = {
     settings: {
         images: null,
         prefix: null,
-        each: function(counter) {}
+        each: function(counter) {},
+        onComplete: function(){},
     },
     job: function() {
         var self = this;
@@ -612,6 +748,7 @@ components.imagePreload = {
                     }
                     self.settings.each(counter, percent);
                     if(counter === total) {
+                        self.settings.onComplete();
                         self.parent.componentDone(); 
                     }
                 }

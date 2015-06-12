@@ -17,15 +17,8 @@
         debug: true
     });
 
-    chain.add({
-        componentName: 'facebookInit',
-        settings: {
-            appId: '115378765262567',
-        }
-    });
-
+    chain.add('facebookInit', {appId: '115378765262567'});
     chain.pause();
-
     chain.if(
         function() {
             return bool
@@ -46,6 +39,9 @@
         }
     );
     
+
+   
+
     </script>
 </body>
 
