@@ -205,7 +205,19 @@ var ChainWork = (function () {
         this.isAbort = true;
     }
 
-    ChainWork.prototype.add = function(component) {
+    ChainWork.prototype.add = function(name, settings) {
+        window.args = arguments;
+        var component;
+        if(arguments.length > 1 && typeOf(arguments[0]) === 'string') {
+            component = {
+                componentName: arguments[0],
+                settings: arguments[1] 
+            }
+        }
+        else {
+            component = arguments[0];
+        }
+
         //Run init function on when components are added
         try {
             //inject chain as parent to access in init functions
