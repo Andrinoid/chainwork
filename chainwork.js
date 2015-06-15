@@ -1,4 +1,4 @@
-//     Chainwork.js 0.1
+//     Chainwork.js 0.5
 //     webpage
 //     (c) 2015 Andri Birgisson
 //     Chainwork may be freely distributed under the MIT license.
@@ -10,7 +10,7 @@
 //Drop lodash dependancy in Chainwork and core components
 //lint
 
-//typeOf borrowed from mootools
+//typeOf based on mootools typeOf
 var typeOf = function(item) {
     'use strict';
     if (item === null) {
@@ -205,6 +205,11 @@ var ChainWork = (function () {
         this.isAbort = true;
     }
 
+    /*
+    *Add supports two syntax styles
+    *chain.add(name. {})
+    *chain.add({componentName: name, settings: {}})
+    */
     ChainWork.prototype.add = function(name, settings) {
         window.args = arguments;
         var component;
@@ -285,6 +290,14 @@ var ChainWork = (function () {
 })();
 
 
+
+ /*
+---
+*Component
+*
+*returns one compenent and runs it
+*e.g Component.run('name', {someSettings: 'foo'});
+*/
 var Component = (function() {
     
     function Component() {
@@ -304,5 +317,114 @@ var Component = (function() {
 
 var Component = new Component();
 
+ /*
+---
+*Core components for ChainWork.
+*
+*Core components follows the component standard.
+*They extend the chainwork methods and have short method defined in the Chainwork class
+*e.g chain.call(Fn);
+*/
+
+var components = {
+
+    callAsync: {
+        name: 'callAsync',
+        requirements: [],
+        provides: {},
+        settings: {
+            call: null
+        },
+        job: function() {
+            var self = this;
+            this.settings.call();
+            setTimeout(function() {
+                self.parent.componentDone();
+            });
+        }
+    },
+
+    callSync: {
+        name: 'callSync',
+        requirements: [],
+        provides: {},
+        settings: {
+            call: null
+        },
+        job: function() {
+            var self = this;
+            var onComplete = function() {
+                self.parent.componentDone();
+            };
+            this.settings.call(onComplete);
+        }
+    },
+
+    pause: {
+        name: 'pause',
+        requirements: [],
+        provides: {},
+        settings: {
+            delay: null
+        },
+        job: function() {
+            var self = this;
+            this.parent.stop();
+            setTimeout(function() {
+                self.parent.chain.splice(self.parent.index, 1);
+            });
+            if(this.settings.delay) {
+                setTimeout(function() {
+                    self.parent.play('chain');
+                }, this.settings.delay);
+            }
+        }
+    },
+
+    reset: {
+        name: 'reset',
+        settings: {
+            index: 0
+        },
+        job: function() {
+            this.parent.isAbort = true;
+            this.parent.collection = {};
+            this.parent.stamps.length = this.settings.index;
+            this.parent.index = this.settings.index;
+            
+        }
+    },
+
+    initIf: {
+        name: 'if',
+        settings: {
+            ifCondition: null, //must return true or false
+            component: null //this component will be added
+        },
+        init: function(me) {
+            var self = this;
+            if(me.settings.ifCondition) {
+                this.parent.add(me.settings.component);
+            }
+        },
+        job: function() {
+            this.parent.componentDone();
+        }
+    },
+
+    if: {
+        name: 'if',
+        settings: {
+            ifCondition: function() {}, //must return true or false
+            component: null //this component will be added
+        },
+        job: function() {
+            if(this.settings.ifCondition) {
+                this.parent.add(this.settings.component);
+            }
+            this.parent.componentDone();
+        }
+    },
+}
 
 
