@@ -68,11 +68,10 @@ components.fbLogin = {
     settings: {
         scope: null,
         forceRun: null,
-        clickElm: null
+        onCancel: function() {}
     },
     pre: function() {
         if(this.parent.caller !== 'user' && !this.settings.forceRun) {
-            debugger;
             this.parent.stop();
             console.warn('CHAIN WARNING: Facebook login must be triggered by user action to prevent popupblock. Its best practice to put pause before');
             return false;
@@ -85,8 +84,13 @@ components.fbLogin = {
         FB.login(function(response) {
             if(response.authResponse) {
                 _.extend(self.provides.fbLogin, response);
+            } else {
+                self.settings.onCancel();
             }
             self.parent.componentDone();
+            if(self.parent.debug) {
+                console.log('User cancelled login or did not fully authorize.');
+            }
         }, {
             scope: self.settings.scope
         });
