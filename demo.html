@@ -18,6 +18,7 @@
 
     chain.add('facebookInit', {appId: '115378765262567'});
     chain.pause();
+    chain.add('fbLogin', {stopChainOnCancel: true});
     chain.if(
         function() {
             return bool

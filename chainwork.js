@@ -213,10 +213,10 @@ var ChainWork = (function () {
     ChainWork.prototype.add = function(name, settings) {
         window.args = arguments;
         var component;
-        if(arguments.length > 1 && typeOf(arguments[0]) === 'string') {
+        if(arguments.length > 1 || typeOf(arguments[0]) === 'string') {
             component = {
                 componentName: arguments[0],
-                settings: arguments[1] 
+                settings: arguments[1] ? arguments[1] : {}
             }
         }
         else {
