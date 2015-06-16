@@ -68,6 +68,7 @@ components.fbLogin = {
     settings: {
         scope: null,
         forceRun: null,
+        stopChainOnCancel: false,
         onCancel: function() {}
     },
     pre: function() {
@@ -79,17 +80,20 @@ components.fbLogin = {
     },
     job: function() {
         var self = this;
-        
         var scope = this.settings.scope || '';
+        
         FB.login(function(response) {
             if(response.authResponse) {
                 _.extend(self.provides.fbLogin, response);
+                self.parent.componentDone();
             } else {
                 self.settings.onCancel();
-            }
-            self.parent.componentDone();
-            if(self.parent.debug) {
-                console.log('User cancelled login or did not fully authorize.');
+                if(!self.settings.stopChainOnCancel) {
+                    self.parent.componentDone();
+                }
+                if(self.parent.debug) {
+                    console.log('User cancelled login or did not fully authorize.');
+                }
             }
         }, {
             scope: self.settings.scope
