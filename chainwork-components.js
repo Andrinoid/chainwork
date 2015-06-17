@@ -146,6 +146,7 @@ components.fbFeed = {
         },
         onPublished: null,
         onDeclined: null,
+        stopChainOnCancel: false,
         forceRun: null
     },
      pre: function() {
@@ -166,7 +167,13 @@ components.fbFeed = {
             else {
                 self.provides.fbFeed = {hasPosted: false};
                 self.settings.onDeclined(response);
-                self.parent.componentDone();
+                self.settings.onCancel();
+                if(!self.settings.stopChainOnCancel) {
+                    self.parent.componentDone();
+                }
+                if(self.parent.debug) {
+                    console.log('User did not post successfully.');
+                }
             }
         };
         FB.ui(this.settings.params, callback);
