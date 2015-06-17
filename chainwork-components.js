@@ -167,7 +167,6 @@ components.fbFeed = {
             else {
                 self.provides.fbFeed = {hasPosted: false};
                 self.settings.onDeclined(response);
-                self.settings.onCancel();
                 if(!self.settings.stopChainOnCancel) {
                     self.parent.componentDone();
                 }
