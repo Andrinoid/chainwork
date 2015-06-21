@@ -173,6 +173,52 @@ components.fbFeed = {
     },
 },
 
+components.fbInvite = {
+    //Note that the facebook app has to be in the category "Game" for invite to work (configured on developers.facebook.com)
+    name: 'fbInvite',
+    requirements: [],
+    dependsOn : ['facebookInit'],
+    provides: {},
+    settings: {
+        params: {
+            method: 'apprequests',
+            message: 'Invite message'
+        },
+        onInvited: null,
+        onDeclined: null,
+        stopChainOnCancel: false,
+        forceRun: null
+    },
+    pre: function(){
+        if(this.parent.caller !== 'user' && !this.settings.forceRun) {
+            this.parent.stop();
+            console.warn('CHAIN WARNING: Must be triggered by user action to prevent popupblock');
+            return false;
+        }
+    },
+    job: function(){
+        var self = this;
+        var callback = function(response) {
+            if (response.to) {
+                self.provides.fbInvite = {hasInvited: true};
+                self.settings.onInvited(response);
+                self.parent.componentDone();
+            } 
+            else {
+                self.provides.fbInvite = {hasInvited: false};
+                self.settings.onDeclined(response);
+                if(!self.settings.stopChainOnCancel) {
+                    self.parent.componentDone();
+                }
+                if(self.parent.debug) {
+                    console.log('User did not invite anyone.');
+                }
+            }
+        };
+        FB.ui(this.settings.params, callback);
+    }
+},
+
 // chain.add({
 //     componentName: 'sendMail',
 //     settings: {
