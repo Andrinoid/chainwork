@@ -112,6 +112,7 @@ components.fbUserInfo = {
     provides: {fbUserInfo: {}},
     settings: {
         url: null,
+        onComplete: function(data) {}
     },
     job: function() {
         var self = this;
@@ -119,7 +120,7 @@ components.fbUserInfo = {
         FB.api(url, function(response) {
             if(!response.error) {
                 _.extend(self.provides.fbUserInfo, response);
-                //self.provides.email = response.email; //this must be to function if email is sent
+                self.settings.onComplete(response)
             }
             ////////##################            
             //TODO Give user an option if facebook info is not available
