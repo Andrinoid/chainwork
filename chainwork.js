@@ -192,6 +192,17 @@ var ChainWork = (function () {
         this.callchain(caller);
     }
 
+    ChainWork.prototype.reset = function(index) {
+        this.isAbort = true;
+        this.collection = {};
+        this.stamps.length = index || 0;
+        this.index = index || 0;
+    }
+
+    ChainWork.prototype.seek = function(index) {
+        this.reset(index);
+    }
+
     ChainWork.prototype.next = function(caller) {
         console.log(this.collection);
         var caller = caller || 'user';
@@ -264,22 +275,26 @@ var ChainWork = (function () {
         return this;
     }
 
-    ChainWork.prototype.reset = function(args) {
-        var args = args || {};
-        this.add({
-            componentName: 'reset',
-            settings: {
-                index: args.toIndex
-            }
-        });
-        return this;
-    }
+
+    //Reset is now part of Chainwork and runs instantly like chain.play() but not as part of the chain
+    // ChainWork.prototype.reset = function(args) {
+    //     var args = args || {};
+    //     //Dont be picky
+    //     var index = args.toIndex || args.toindex || args.index || args.indexTo || args.indexto || 0;
+    //     this.add({
+    //         componentName: 'reset',
+    //         settings: {
+    //             index: index
+    //         }
+    //     });
+    //     return this;
+    // }
 
     ChainWork.prototype.if = function(fn, component) {
         this.add({
             componentName: 'if',
             settings: {
-                ifCondition: fn(), 
+                ifCondition: fn, 
                 component: component
             }
         });
@@ -403,7 +418,7 @@ var components = {
         },
         init: function(me) {
             var self = this;
-            if(me.settings.ifCondition) {
+            if(me.settings.ifCondition()) {
                 this.parent.add(me.settings.component);
             }
         },
@@ -419,7 +434,7 @@ var components = {
             component: null //this component will be added
         },
         job: function() {
-            if(this.settings.ifCondition) {
+            if(this.settings.ifCondition()) {
                 this.parent.add(this.settings.component);
             }
             this.parent.componentDone();
