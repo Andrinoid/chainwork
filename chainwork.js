@@ -66,8 +66,10 @@ var ChainWork = (function () {
     //This is a trail of the components that have executed used for dependancy checks
     ChainWork.prototype.componentStamp = function() {
         this.stamps.push(this.chain[this.index].componentName);
-        if(this.debug)
-            console.log('running component: '+this.chain[this.index].componentName);
+        if(this.debug) {
+            var name = this.getComponentProperty('name');
+            console.log('running component: ' + name);
+        }
     }
 
     ChainWork.prototype.getComponentProperty = function(property) {
@@ -352,6 +354,8 @@ var components = {
         },
         job: function() {
             var self = this;
+            //If provided function has name extend it to this component name for debug and clarity
+            this.name = this.settings.call.name ? 'callAsync-' + this.settings.call.name : 'callAsync';
             this.settings.call();
             setTimeout(function() {
                 self.parent.componentDone();
@@ -368,6 +372,8 @@ var components = {
         },
         job: function() {
             var self = this;
+            //If provided function has name extend it to this component name for debug and clarity
+            this.name = this.settings.call.name ? 'callSync-' + this.settings.call.name : 'callAsync';
             var onComplete = function() {
                 self.parent.componentDone();
             };
@@ -441,5 +447,3 @@ var components = {
         }
     },
 }
-
-
