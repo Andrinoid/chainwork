@@ -187,6 +187,16 @@ var ChainWork = (function () {
         this.chain.splice(this.index+1, 0, component);
     }
 
+    ChainWork.prototype.remove = function(index) {
+        if(index === 'last') {
+            index = this.chain.length - 1;
+        }
+        if(index === 'first') {
+            index = 0;
+        }
+        this.chain.splice(index, 1);
+    }
+
     ChainWork.prototype.play = function(caller) {
         var caller = caller || 'user';
         this.isPlay = true;
@@ -433,7 +443,7 @@ var components = {
         }
     },
 
-    if: {
+    if: {// the problem with this component is that it ads component afterwards so its always the last one in the chain
         name: 'if',
         settings: {
             ifCondition: function() {}, //must return true or false
@@ -445,5 +455,5 @@ var components = {
             }
             this.parent.componentDone();
         }
-    },
+    }
 }
