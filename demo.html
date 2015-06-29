@@ -23,48 +23,56 @@
       
     </div>
     <script>
-    var data = {};
+    var chain = new ChainWork({debug: true})
+    .call(function one(){
+        console.log(1);
+    })
+    .pause()
+    .call(function two() {
+        console.log(2);
+    });
+    // var data = {};
 
-    var chain = new ChainWork({
-        autoPlay: true,
-        debug: true
-    });
+    // var chain = new ChainWork({
+    //     autoPlay: true,
+    //     debug: true
+    // });
 
-    chain.add('facebookInit', {appId: '115378765262567'});
-    chain.pause();
-    chain.add('fbLogin', {stopChainOnCancel: true});
-    chain.if(
-        function() {
-            return document.querySelector('input[type="checkbox"]').checked;
-        }, {
-            componentName: 'fbFeed',
-            settings: {
-                params: {
-                    method: 'feed',
-                    name: 'Name',
-                    caption: 'caption',
-                    link: 'https://github.com/Andrinoid/chainwork/',
-                    picture: 'https://apps.tweecode.com/custom/obeurovision2015/images/feed.png',
-                    description: 'Description.',
-                },
-                forceRun: true,
-                onPublished: function(rsp) {},
-                onDeclined: function(rsp) {},
-            }
-        }
-    );
-    chain.add('fbUserInfo', {
-        onComplete: function(data) {
-            window.data.first_name = data.first_name;
-        }
-    });
-    chain.call(function(sync) {
-        alert('hi '+data.first_name);
-        sync();
-    });
-    chain.call(function() {
-        alert('dont hang up on me');
-    });
+    // chain.add('facebookInit', {appId: '115378765262567'});
+    // chain.pause();
+    // chain.add('fbLogin', {stopChainOnCancel: true});
+    // chain.if(
+    //     function() {
+    //         return document.querySelector('input[type="checkbox"]').checked;
+    //     }, {
+    //         componentName: 'fbFeed',
+    //         settings: {
+    //             params: {
+    //                 method: 'feed',
+    //                 name: 'Name',
+    //                 caption: 'caption',
+    //                 link: 'https://github.com/Andrinoid/chainwork/',
+    //                 picture: 'https://apps.tweecode.com/custom/obeurovision2015/images/feed.png',
+    //                 description: 'Description.',
+    //             },
+    //             forceRun: true,
+    //             onPublished: function(rsp) {},
+    //             onDeclined: function(rsp) {},
+    //         }
+    //     }
+    // );
+    // chain.add('fbUserInfo', {
+    //     onComplete: function(data) {
+    //         window.data.first_name = data.first_name;
+    //     }
+    // });
+    // chain.call(function(sync) {
+    //     alert('hi '+data.first_name);
+    //     sync();
+    // });
+    // chain.call(function() {
+    //     alert('dont hang up on me');
+    // });
 
 
 

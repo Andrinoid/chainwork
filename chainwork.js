@@ -131,6 +131,18 @@ var ChainWork = (function () {
             this.onComplete(this.collection); 
             return;
         }
+
+
+        ///
+        this.getChainProperty('assigned') && this.getChainProperty('assigned')();
+        
+
+        var assignment = this.getComponentProperty('assignToNext');
+        if(assignment) {
+            this.chain[this.index + 1]['assigned'] = assignment;
+        }
+        ///
+
         this.caller = caller || 'user'; // if caller is not defined we asume its a user action
         //check for requirements
         var errorList = this.checkRequirements();
@@ -216,7 +228,6 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.next = function(caller) {
-        console.log(this.collection);
         var caller = caller || 'user';
         this.isPlay = false;
         this.isAbort = false;
@@ -409,6 +420,9 @@ var components = {
                     self.parent.play('chain');
                 }, this.settings.delay);
             }
+        },
+        assignToNext: function() {
+            console.log('assignment from last');
         }
     },
 
