@@ -50,6 +50,8 @@ var ChainWork = (function () {
         this.isAbort = false;
         this.initIndex = 0; //index for added components before chain is started
         this.index = 0;
+        //cache is not cleared by the chain, but can be overwritten by any component.
+        this.cache = null;
 
         this.previousReturn = null;
         this.collection = {
@@ -132,10 +134,12 @@ var ChainWork = (function () {
             return;
         }
 
-
-        ///
-        this.getChainProperty('assigned') && this.getChainProperty('assigned')();
-        
+        //TODO move assignment to special method
+        //We must add the assigned function to "this" for binding and give the function access to this class 
+        if(this.getChainProperty('assigned')) {
+            this.assignment = this.getChainProperty('assigned');
+            this.assignment();
+        }
 
         var assignment = this.getComponentProperty('assignToNext');
         if(assignment) {
@@ -188,6 +192,7 @@ var ChainWork = (function () {
             }
             self.extendGlobal();
             self.isBusy = false;
+            //self.cache = null; //might cause problem for other components than pause because its removed by the same component
             self.index++;
             if(self.isPlay) {
                 self.callchain('chain');
@@ -195,8 +200,12 @@ var ChainWork = (function () {
         });
     }
 
+    ChainWork.prototype.injectBefore = function(component) {
+         this.chain.splice(this.index - 1, 0, component);
+    }
+
     ChainWork.prototype.injectAfter = function(component) {
-        this.chain.splice(this.index+1, 0, component);
+        this.chain.splice(this.index + 1, 0, component);
     }
 
     ChainWork.prototype.remove = function(index) {
@@ -402,6 +411,14 @@ var components = {
         }
     },
 
+    /*
+    * This component is wierd for a good reason.
+    * Pause stops the chain and removes it self from the chain. So next component has a trusted event if needed e.g window popup
+    * The removed component must be added again so the chain doesn't break of reseted.
+    * so the component makes a clone of itself and assignToNext will replace the component.
+    *
+    * More on trusted events http://www.w3.org/TR/DOM-Level-3-Events/#trusted-events
+    */
     pause: {
         name: 'pause',
         requirements: [],
@@ -412,6 +429,7 @@ var components = {
         job: function() {
             var self = this;
             this.parent.stop();
+            this.parent.cache = _.clone(this.parent.chain[this.parent.index]);  
             setTimeout(function() {
                 self.parent.chain.splice(self.parent.index, 1);
             });
@@ -422,7 +440,8 @@ var components = {
             }
         },
         assignToNext: function() {
-            console.log('assignment from last');
+            this.index++;
+            this.injectBefore(this.cache);
         }
     },
 
