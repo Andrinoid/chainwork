@@ -82,6 +82,10 @@ var ChainWork = (function () {
         return this.chain[this.index][property];
     }
 
+    ChainWork.prototype.chainHasProperty = function(property) {
+        return this.chain[this.index] ? hasOwnProperty.call(this.chain[this.index], property) : false;
+    }
+
     ChainWork.prototype.setProperty = function(property, value) {
         components[this.chain[this.index].componentName][property] = value;
     }
@@ -132,6 +136,17 @@ var ChainWork = (function () {
             if(this.debug) console.log('chain is being called but out of range');
             this.onComplete(this.collection); 
             return;
+        }
+        //If the component has property once and it is true then skip it
+        if(this.chainHasProperty('once')) {
+            if(this.getChainProperty('once')) {
+                this.componentDone();
+                return;
+            }
+        }
+        //if the component has property once then mark it as true to prevent it from running again.
+        if(this.chainHasProperty('once')) {
+            this.chain[this.index].once = true;
         }
 
         //TODO move assignment to special method
@@ -250,11 +265,10 @@ var ChainWork = (function () {
 
     /*
     *Add supports two syntax styles
-    *chain.add(name. {})
+    *chain.add(name, {})
     *chain.add({componentName: name, settings: {}})
     */
     ChainWork.prototype.add = function(name, settings) {
-        window.args = arguments;
         var component;
         if(arguments.length > 1 || typeOf(arguments[0]) === 'string') {
             component = {
@@ -275,6 +289,35 @@ var ChainWork = (function () {
         catch(err) {
             //pass
         }
+        this.chain.push(component);
+        this.initIndex++;
+        return this;
+    }
+
+    //same as add except for the once property thats added to the component. We should pull out duplicated code
+    //once makes component one time. If chain is reseted the chain skips this component.
+    ChainWork.prototype.once = function(name, settings) {
+        var component;
+        if(arguments.length > 1 || typeOf(arguments[0]) === 'string') {
+            component = {
+                componentName: arguments[0],
+                settings: arguments[1] ? arguments[1] : {}
+            }
+        }
+        else {
+            component = arguments[0];
+        }
+
+        //Run init function on when components are added
+        try {
+            //inject chain as parent to access in init functions
+            components[component.componentName]['parent'] = this;
+            components[component.componentName]['init'](component);
+        }
+        catch(err) {
+            //pass
+        }
+        component['once'] = false;
         this.chain.push(component);
         this.initIndex++;
         return this;

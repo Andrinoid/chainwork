@@ -60,6 +60,17 @@ components.fbRemoveToken = {
     }
 };
 
+components.test = {
+    name: 'test',
+    job: function() {
+        var self = this;
+        console.log('test component');
+        setTimeout(function() {
+            self.parent.componentDone();
+        });
+    }
+};
+
 components.fbLogin = {
     name: 'fbLogin',
     requirements: [],//Requirements can be provided by any component

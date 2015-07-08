@@ -2,6 +2,7 @@
 
 <head>
     <title>Chainwork.js Demo</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.6/animate.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
     <script src="chainwork.js"></script>
     <script src="chainwork-components.js"></script>
@@ -21,72 +22,101 @@
     </div>
 
     <div class="chainDisplay">
-      
+      <div class="cd_line"></div>
     </div>
+    <style>
+    .chainDisplay {
+        background: #272822;
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 260px;
+        color: white;
+        text-transform: uppercase;
+        font-family: arial;
+        font-size: 13px;
+        font-weight: bold;
+        padding: 20px;
+    }
+    .cd_line {
+        height: 0;
+        width: 3px;
+        background: #B7B8B3;
+        position: absolute;
+        top: 20px;
+        left: 48px;
+        z-index: -1;
+        transition: height 0.3s ease;
+    }
+    .cd_circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #a6e22d;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .cd_circle p {
+        position: absolute;
+        left: 66px;
+        top: 8px;
+    }
+    .cd_active {
+        background: lightblue;
+    }
+    </style>
     <script>
     var chain = new ChainWork({debug: true})
     .call(function one(){
         console.log(1);
     })
-    .pause()
+    .once('test')
+    //.pause()
     .call(function two() {
         console.log(2);
-    });
-    // var data = {};
-
-    // var chain = new ChainWork({
-    //     autoPlay: true,
-    //     debug: true
-    // });
-
-    // chain.add('facebookInit', {appId: '115378765262567'});
-    // chain.pause();
-    // chain.add('fbLogin', {stopChainOnCancel: true});
-    // chain.if(
-    //     function() {
-    //         return document.querySelector('input[type="checkbox"]').checked;
-    //     }, {
-    //         componentName: 'fbFeed',
-    //         settings: {
-    //             params: {
-    //                 method: 'feed',
-    //                 name: 'Name',
-    //                 caption: 'caption',
-    //                 link: 'https://github.com/Andrinoid/chainwork/',
-    //                 picture: 'https://apps.tweecode.com/custom/obeurovision2015/images/feed.png',
-    //                 description: 'Description.',
-    //             },
-    //             forceRun: true,
-    //             onPublished: function(rsp) {},
-    //             onDeclined: function(rsp) {},
-    //         }
-    //     }
-    // );
-    // chain.add('fbUserInfo', {
-    //     onComplete: function(data) {
-    //         window.data.first_name = data.first_name;
-    //     }
-    // });
-    // chain.call(function(sync) {
-    //     alert('hi '+data.first_name);
-    //     sync();
-    // });
-    // chain.call(function() {
-    //     alert('dont hang up on me');
-    // });
+    })
+    .call(function() {
+        console.log(3);
+    })
 
 
 
-    var ChainDisplay = (function() {
+
+    var Cd = (function() {
         
-        function ChainDisplay() {
-            console.log('todo make chain display for visualization');
+        function Cd(chain) {
+            this.chain = chain;
+
+            this.line = $('.cd_line');
         }
 
+        Cd.prototype.log = function() {
+            var self = this;
+            var chain = this.chain.chain;
+            chain.forEach(function(item) {
+                self._setLineHeight();
+                var $circle = $('<div class="cd_circle animated bounce"></div>').appendTo('.chainDisplay');
+                var $label = $('<p>'+item.componentName+'</p>').appendTo($circle);
+            });
+            this.setActive();
+        }
 
-        return ChainDisplay;
+        Cd.prototype.setActive = function() {
+            $('.cd_circle').eq(this.chain.index).addClass('cd_active');
+        }
+
+        Cd.prototype._setLineHeight = function() {
+            var circleHeight = 70;
+            this.line.css({'height': circleHeight * this.chain.chain.length});
+
+        }
+
+        return Cd;
+
     })();
-   
+    var cd = new Cd(chain);
+    cd.log();
 
     </script>
 </body>
