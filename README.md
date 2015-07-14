@@ -43,7 +43,7 @@ chain.call(function() {
 </script>
 ```
 In the above example we define a new chain with debug mode on(see documentation) and autoPlay set to true. This will make the chain run on page load. The chain will keep running down the chain until it hits the pause component. To run the chain again we must trigger the play method again. We do this with ```chain.play()```. <br><br>In this chain we:
-1.  setup facebook sdk on page load.
+1.  setup facebook sdk on page load. Using the once method(see documentation).
 2.  Authenticate the user with facebook.
 3.  Fetch the profile information for that user and store it in a global variable.
 4.  Call custom code that alerts the user.
