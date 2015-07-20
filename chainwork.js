@@ -86,6 +86,10 @@ var ChainWork = (function () {
         return this.chain[this.index] ? hasOwnProperty.call(this.chain[this.index], property) : false;
     }
 
+    ChainWork.prototype.componentHasProperty = function(property) {
+        return components[this.chain[this.index].componentName] ? hasOwnProperty.call(components[this.chain[this.index].componentName], property) : false;
+    }
+
     ChainWork.prototype.setProperty = function(property, value) {
         components[this.chain[this.index].componentName][property] = value;
     }
@@ -150,16 +154,18 @@ var ChainWork = (function () {
         }
 
         //TODO move assignment to special method
-        //We must add the assigned function to "this" for binding and give the function access to this class 
-        if(this.getChainProperty('assigned')) {
+        //We must add the assigned function to "this" for binding and give the function access to this class
+        //This occurs if the previous component have added the assignToNext property to the component
+        if(this.chainHasProperty('assigned')) {
             this.assignment = this.getChainProperty('assigned');
             this.assignment();
         }
 
-        var assignment = this.getComponentProperty('assignToNext');
-        if(assignment) {
+        if(this.componentHasProperty('assignToNext')) {
+            var assignment = this.getComponentProperty('assignToNext');
             this.chain[this.index + 1]['assigned'] = assignment;
         }
+        ///
         ///
 
         this.caller = caller || 'user'; // if caller is not defined we asume its a user action
@@ -457,7 +463,7 @@ var components = {
     /*
     * This component is wierd for a good reason.
     * Pause stops the chain and removes it self from the chain. So next component has a trusted event if needed e.g window popup
-    * The removed component must be added again so the chain doesn't break of reseted.
+    * The removed component must be added again so the chain doesn't break if reseted.
     * so the component makes a clone of itself and assignToNext will replace the component.
     *
     * More on trusted events http://www.w3.org/TR/DOM-Level-3-Events/#trusted-events
