@@ -274,16 +274,17 @@ var ChainWork = (function () {
     *chain.add(name, {})
     *chain.add({componentName: name, settings: {}})
     */
-    ChainWork.prototype.add = function(name, settings) {
+    ChainWork.prototype._add = function(args) {
+        //this a base function for other methods that can add components to the chain e.g once and async
         var component;
-        if(arguments.length > 1 || typeOf(arguments[0]) === 'string') {
+        if(args.length > 1 || typeOf(args[0]) === 'string') {
             component = {
-                componentName: arguments[0],
-                settings: arguments[1] ? arguments[1] : {}
+                componentName: args[0],
+                settings: args[1] ? args[1] : {}
             }
         }
         else {
-            component = arguments[0];
+            component = args[0];
         }
 
         //Run init function on when components are added
@@ -295,6 +296,21 @@ var ChainWork = (function () {
         catch(err) {
             //pass
         }
+        return component;
+    }
+
+    ChainWork.prototype.add = function(name, settings) {
+        var component = this._add(arguments);
+        this.chain.push(component);
+        this.initIndex++;
+        return this;
+    }
+
+    //same as add except for the once property thats added to the component.
+    //once makes component disposable. When compnent get's called first time the once property is set to true.
+    ChainWork.prototype.once = function(name, settings) {
+        var component = this._add(arguments);
+        component['once'] = false;
         this.chain.push(component);
         this.initIndex++;
         return this;
