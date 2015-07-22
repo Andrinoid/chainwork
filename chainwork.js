@@ -316,35 +316,6 @@ var ChainWork = (function () {
         return this;
     }
 
-    //same as add except for the once property thats added to the component. We should pull out duplicated code
-    //once makes component one time. If chain is reseted the chain skips this component.
-    ChainWork.prototype.once = function(name, settings) {
-        var component;
-        if(arguments.length > 1 || typeOf(arguments[0]) === 'string') {
-            component = {
-                componentName: arguments[0],
-                settings: arguments[1] ? arguments[1] : {}
-            }
-        }
-        else {
-            component = arguments[0];
-        }
-
-        //Run init function on when components are added
-        try {
-            //inject chain as parent to access in init functions
-            components[component.componentName]['parent'] = this;
-            components[component.componentName]['init'](component);
-        }
-        catch(err) {
-            //pass
-        }
-        component['once'] = false;
-        this.chain.push(component);
-        this.initIndex++;
-        return this;
-    }
-
     //**********************
     // Shortcuts to core components
     // It gives more readable syntax but follows the component standard
