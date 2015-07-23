@@ -73,7 +73,6 @@ components.test = {
 
 components.fbLogin = {
     name: 'fbLogin',
-    requirements: [],//Requirements can be provided by any component
     dependsOn: ['facebookInit'],//Dependancy on any component to run before
     provides: {fbLogin: {}},
     settings: {
@@ -118,7 +117,6 @@ components.fbLogin = {
 components.fbUserInfo = {
     //TODO check if user is connected before geting info
     name: 'fbUserInfo',
-    requirements: [],
     dependsOn: ['facebookInit', 'fbLogin'],
     provides: {fbUserInfo: {}},
     settings: {
@@ -144,7 +142,6 @@ components.fbUserInfo = {
 components.fbFeed = {
     //TODO Vantar whait component wait method hér vegna þess að userinn getur tafið respons um X tíma
     name: 'fbFeed',
-    requirements: [],
     dependsOn: ['facebookInit'],
     provides: {},
     settings: {
@@ -188,7 +185,6 @@ components.fbFeed = {
 components.fbInvite = {
     //Note that the facebook app has to be in the category "Game" for invite to work (configured on developers.facebook.com)
     name: 'fbInvite',
-    requirements: [],
     dependsOn : ['facebookInit'],
     provides: {},
     settings: {
@@ -249,7 +245,6 @@ components.fbInvite = {
 // });
 components.sendMail = {
     name: 'sendMail',
-    requirements: [], //needs some rethinking
     provides: null,
     settings: {
         apiKey: null,
@@ -321,7 +316,6 @@ components.sendMail = {
 
 components.firebaseSave = {
     name: 'firebaseSave',
-    requirements: [],
     dependsOn: [],
     provides: {},
     settings: {
@@ -366,7 +360,6 @@ components.firebaseSave = {
 //BETA
 components.firebaseIsAuth = {
     name: 'firebaseIsAuth',
-    requirements: [],
     dependsOn: [],
     provides: {},
     settings: {
@@ -403,7 +396,6 @@ components.firebaseIsAuth = {
 */
 components.firebaseAuth = {
     name: 'firebaseAuth',
-    requirements: [],
     dependsOn: [],
     provides: {},
     settings: {
@@ -461,7 +453,6 @@ components.collectForm = {
         its possible to override validation in settings.validation
     */
     name: 'collectForm',
-    requirements: [],
     dependsOn: [],
     provides: {},
     settings: {
@@ -574,7 +565,6 @@ components.collectForm = {
 components.spriteAnimation = {
     name: 'spriteAnimation',
     provides: null,
-    requirements: null,
     settings: {
         viewPort: null,
         addPolyfills: true,

@@ -56,10 +56,7 @@ var ChainWork = (function () {
         this.activeParallel = null;
         this.parallels = {};
 
-        this.previousReturn = null;
-        this.collection = {
-            //collected data by the chain
-        };
+        this.collection = {/*collected data by the chain DEPRICATED*/};
         this.stamps = [];
         //Play on load if autoplay is set
         if(this.autoPlay) {
@@ -93,22 +90,8 @@ var ChainWork = (function () {
         return components[this.chain[this.index].componentName] ? hasOwnProperty.call(components[this.chain[this.index].componentName], property) : false;
     }
 
-    ChainWork.prototype.setProperty = function(property, value) {
+    ChainWork.prototype._setProperty = function(property, value) {
         components[this.chain[this.index].componentName][property] = value;
-    }
-
-    ChainWork.prototype.checkRequirements = function() {
-        var self = this;
-        var requirements = this.getComponentProperty('requirements');
-        if(!requirements) return false;
-        var errorList = _.map(requirements, function(item) {
-            if(!self.collection[item]) {
-                return item;
-            }
-        });
-        if(errorList[0])
-            return errorList;
-        return false;
     }
 
     //take the information provided by component and store them
@@ -118,6 +101,7 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.applySettings = function() {
+        //this method might have a problem because it overrides the component settings so it doesn't have the same init settings for next run
         var settings = this.getChainProperty('settings');
         var compontentSettings = this.getComponentProperty('settings');
         _.assign(compontentSettings, settings);
@@ -185,54 +169,83 @@ var ChainWork = (function () {
         this._checkForAssignment();
 
         this.caller = caller || 'user'; // if caller is not defined we asume its a user action
-        /****/
-        //WE should drop this unused feature
-        //check for requirements
-        // var errorList = this.checkRequirements();
-        // if(errorList.length) {
-        //     console.warn(this.chain[this.index], 'is missing requires some component to provide', errorList.toString());
-        //     return false;
-        // }
+       
         //if dependancies are listed run them before
         var depsErrorList = this._checkForDependancies();
         if(depsErrorList.length) {
             if(this.debug)
                 console.warn(this.chain[this.index].componentName, 'might be missing dependancy, please add them before. Missing:'+ depsErrorList.toString());
         }
-
         this.applySettings();
         //inject the this class as parent of all components. so components can access it with this.parent
-        this.setProperty('parent', this);
-        //run pre job function if any
-        if(this.getComponentProperty('pre')) {
+        this._setProperty('parent', this);
+
+        if(this.componentHasProperty('pre')) {
             components[this.chain[this.index].componentName].pre();
         }
         //this gives pre function chance to abort if needed e.g force user action
         if(this.isAbort) {
             return false;
         }
-        components[this.chain[this.index].componentName].job();//replace with help function
+        components[this.chain[this.index].componentName].job();
         //this gives job function chance to abort if needed e.g force user action
         if(this.isAbort) {
             return false;
         }
-        //each component must call componentDone to stop blocking
         this.componentStamp();
     }
 
-    ChainWork.prototype.runSingle = function(caller) {
+    ChainWork.prototype.runSingle = function(componentRef) {
+        var self = this;
+        var component = components[componentRef.componentName];
+        //apply settings
+        var refSettings = componentRef.settings;
+        var compontentSettings = component['settings'];
+        _.assign(compontentSettings, refSettings);
+        //set parent property to component. We dont want the parallel components to affect the rest of the chain so the get a fake parent
+        var fakeParent = {
+            componentDone: function() {
+                self.extendGlobal();//DEPRICATED
+                //We should collect componentDone calls to know when the par component is done and user could set it to whait for it
+                //we must know how many par component is in the collection maybe we can do it in the component
+            },
+            caller: 'chain',//?
+            stop: self.stop,
+            debug: self.debug,
 
+        };
+        component['parent'] = fakeParent;
+        //Check if component has pre function
+        if(component ? hasOwnProperty.call('pre') : false) {
+            component.pre();
+        }
+        //this gives pre function chance to abort if needed e.g force user action
+        if(this.isAbort) {
+            return false;
+        }
+        component.job();
+        //this gives job function chance to abort if needed e.g force user action
+        if(this.isAbort) {
+            return false;
+        }
+        //set component stamp
+        this.stamps.push(componentRef.componentName);
+        if(this.debug) {
+            var name = component['name'];
+            console.log('running component: ' + name);
+        }
     }
 
     ChainWork.prototype.componentDone = function() {
         var self = this;
         //Force this to the bottom of execution
         setTimeout(function() {
+            //DEPRICATED. NO COMPONENT USES IT AND IT DOESN'T MAKE SENS
             if(self.getComponentProperty('post')) {
                 components[self.chain[self.index].componentName].post();
             }
-            self.extendGlobal();
-            //self.cache = null; //might cause problem for other components than pause because its removed by the same component
+            //
+            self.extendGlobal();//DEPRICATED
             self.index++;
             if(self.isPlay) {
                 self.callchain('chain');
@@ -341,28 +354,28 @@ var ChainWork = (function () {
         return this;
     }
 
-    ChainWork.prototype.newParCollector = function() {
+    ChainWork.prototype._newParCollector = function() {
         this.parallels[++this.parallelsCount] = [];
         return this.parallelsCount;
-    }
-
-    ChainWork.prototype.par = function(name, settings) {
-        var component = this._add(arguments);
-        if(!this.activeParallel) {
-            this.activeParallel = this.newParCollector();
-
-            this.add('parallel', {uid: this.activeParallel}, true);
-        }
-        console.log(this.activeParallel);
-        this.parallels[this.activeParallel].push(component);
-        
-        return this;
     }
 
     //**********************
     // Shortcuts to core components
     // It gives more readable syntax but follows the component standard
     //**********************
+    ChainWork.prototype.par = function(name, settings) {
+        //par collects all par siblings in a par collection. and replace all these components with one parallel component
+        //The parallel component has an id for the parallel collection and exetutes all component at ones
+        var component = this._add(arguments);
+        if(!this.activeParallel) {
+            this.activeParallel = this._newParCollector();
+
+            this.add('parallel', {uid: this.activeParallel}, true);
+        }
+        this.parallels[this.activeParallel].push(component);
+        return this;
+    }
+
     ChainWork.prototype.pause = function(args) {
         var args = args || {};
         this.add({
@@ -381,17 +394,6 @@ var ChainWork = (function () {
             componentName: componentName,
             settings: {
                 call: fn                    
-            }
-        });
-        return this;
-    }
-
-    ChainWork.prototype.if = function(fn, component) {
-        this.add({
-            componentName: 'if',
-            settings: {
-                ifCondition: fn, 
-                component: component
             }
         });
         return this;
@@ -438,6 +440,22 @@ var Component = new Component();
 */
 
 var components = {
+
+    parallel: {
+        name: 'parallel',
+        settings: {
+            uid: null
+        },
+        job: function() {
+            //TODO Track the component done calls and give user settings controll to make this component whait for all
+            var self = this;
+            var collection = this.parent.parallels[this.settings.uid];
+            _.each(collection, function(c) {
+                self.parent.runSingle(c);
+            });
+            this.parent.componentDone();
+        }
+    },
 
     callAsync: {
         name: 'callAsync',
@@ -520,37 +538,6 @@ var components = {
             this.parent.stamps.length = this.settings.index;
             this.parent.index = this.settings.index;
             
-        }
-    },
-
-    initIf: {
-        name: 'if',
-        settings: {
-            ifCondition: null, //must return true or false
-            component: null //this component will be added
-        },
-        init: function(me) {
-            var self = this;
-            if(me.settings.ifCondition()) {
-                this.parent.add(me.settings.component);
-            }
-        },
-        job: function() {
-            this.parent.componentDone();
-        }
-    },
-
-    if: {// the problem with this component is that it ads component afterwards so its always the last one in the chain
-        name: 'if',
-        settings: {
-            ifCondition: function() {}, //must return true or false
-            component: null //this component will be added
-        },
-        job: function() {
-            if(this.settings.ifCondition()) {
-                this.parent.add(this.settings.component);
-            }
-            this.parent.componentDone();
         }
     }
 }
