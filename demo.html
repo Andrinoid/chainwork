@@ -68,17 +68,14 @@
     </style>
     <script>
     var chain = new ChainWork({debug: true})
-    .call(function one(){
-        console.log(1);
-    })
-    .once('test')
+    .add('test')
+    .add('test')
+    .add('test')
     .pause()
-    .call(function two() {
-        console.log(2);
-    })
-    .call(function() {
-        console.log(3);
-    })
+    .add('test')
+    .add('test')
+    .add('test')
+    .add('test');
 
 
 

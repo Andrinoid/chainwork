@@ -45,13 +45,16 @@ var ChainWork = (function () {
         this.onComplete = options['onComplete'] || function(){};
         //Constructor
         this.chain = [];
-        this.isBusy = false;
         this.isPlay = false;
         this.isAbort = false;
         this.initIndex = 0; //index for added components before chain is started
         this.index = 0;
         //cache is not cleared by the chain, but can be overwritten by any component.
         this.cache = null;
+
+        this.parallelsCount = 0;
+        this.activeParallel = null;
+        this.parallels = {};
 
         this.previousReturn = null;
         this.collection = {
@@ -108,7 +111,19 @@ var ChainWork = (function () {
         return false;
     }
 
-    ChainWork.prototype.checkDependancies = function() {
+    //take the information provided by component and store them
+    ChainWork.prototype.extendGlobal = function() {
+        var provides = this.getComponentProperty('provides')
+        _.extend(this.collection, provides);
+    }
+
+    ChainWork.prototype.applySettings = function() {
+        var settings = this.getChainProperty('settings');
+        var compontentSettings = this.getComponentProperty('settings');
+        _.assign(compontentSettings, settings);
+    }
+   
+    ChainWork.prototype._checkForDependancies = function() {
         var self = this;
         var dependancies = this.getComponentProperty('dependsOn');
         if(!dependancies) return false;
@@ -121,26 +136,8 @@ var ChainWork = (function () {
             return errorList;
         return false;
     }
-    //take the information provided by component and store them
-    ChainWork.prototype.extendGlobal = function() {
-        var provides = this.getComponentProperty('provides')
-        _.extend(this.collection, provides);
-    }
 
-    ChainWork.prototype.applySettings = function() {
-        var settings = this.getChainProperty('settings');
-        var compontentSettings = this.getComponentProperty('settings');
-        _.assign(compontentSettings, settings);
-    }
-
-    ChainWork.prototype.callchain = function (caller) {
-        var self = this;
-        //chain has reached the end
-        if(this.index >= this.chain.length) {
-            if(this.debug) console.log('chain is being called but out of range');
-            this.onComplete(this.collection); 
-            return;
-        }
+    ChainWork.prototype._checkForOnce = function() {
         //If the component has property once and it is true then skip it
         if(this.chainHasProperty('once')) {
             if(this.getChainProperty('once')) {
@@ -152,8 +149,10 @@ var ChainWork = (function () {
         if(this.chainHasProperty('once')) {
             this.chain[this.index].once = true;
         }
+    }
 
-        //TODO move assignment to special method
+    ChainWork.prototype._checkForAssignment = function() {
+        //if component has assignment to next component or this component has assignment from previous we take care of it here.
         //We must add the assigned function to "this" for binding and give the function access to this class
         //This occurs if the previous component have added the assignToNext property to the component
         if(this.chainHasProperty('assigned')) {
@@ -165,29 +164,47 @@ var ChainWork = (function () {
             var assignment = this.getComponentProperty('assignToNext');
             this.chain[this.index + 1]['assigned'] = assignment;
         }
-        ///
-        ///
+    }
+
+    ChainWork.prototype._checkForOutOfRange = function() {
+        //has chain reached the end?
+        if(this.index >= this.chain.length) {
+            if(this.debug) console.log('chain has reached the end');
+            //event triggered when chain has reached end
+            this.onComplete(this.collection); 
+            return true;
+        }
+        return false;
+    }
+
+    ChainWork.prototype.callchain = function (caller) {
+        var self = this;
+        
+        if(this._checkForOutOfRange()) return false;
+        this._checkForOnce();
+        this._checkForAssignment();
 
         this.caller = caller || 'user'; // if caller is not defined we asume its a user action
+        /****/
+        //WE should drop this unused feature
         //check for requirements
-        var errorList = this.checkRequirements();
-        if(errorList.length) {
-            console.warn(this.chain[this.index], 'is missing requires some component to provide', errorList.toString());
-            return false;
-        }
+        // var errorList = this.checkRequirements();
+        // if(errorList.length) {
+        //     console.warn(this.chain[this.index], 'is missing requires some component to provide', errorList.toString());
+        //     return false;
+        // }
         //if dependancies are listed run them before
-        var depsErrorList = this.checkDependancies();
+        var depsErrorList = this._checkForDependancies();
         if(depsErrorList.length) {
             if(this.debug)
                 console.warn(this.chain[this.index].componentName, 'might be missing dependancy, please add them before. Missing:'+ depsErrorList.toString());
         }
+
         this.applySettings();
         //inject the this class as parent of all components. so components can access it with this.parent
         this.setProperty('parent', this);
         //run pre job function if any
         if(this.getComponentProperty('pre')) {
-            //this can not be run with help method that returns the function
-            //because that causes problem with components that require user action e.g facebook auth
             components[this.chain[this.index].componentName].pre();
         }
         //this gives pre function chance to abort if needed e.g force user action
@@ -200,8 +217,11 @@ var ChainWork = (function () {
             return false;
         }
         //each component must call componentDone to stop blocking
-        this.isBusy = true; //isBuisy is a good idea but not used. needs some thinking. should block and maybe bounce or scrapit for async components
         this.componentStamp();
+    }
+
+    ChainWork.prototype.runSingle = function(caller) {
+
     }
 
     ChainWork.prototype.componentDone = function() {
@@ -212,7 +232,6 @@ var ChainWork = (function () {
                 components[self.chain[self.index].componentName].post();
             }
             self.extendGlobal();
-            self.isBusy = false;
             //self.cache = null; //might cause problem for other components than pause because its removed by the same component
             self.index++;
             if(self.isPlay) {
@@ -299,20 +318,44 @@ var ChainWork = (function () {
         return component;
     }
 
-    ChainWork.prototype.add = function(name, settings) {
+    ChainWork.prototype.add = function(name, settings, isParallel) {
+        if(!isParallel) {
+            this.activeParallel = null;
+        } 
         var component = this._add(arguments);
         this.chain.push(component);
         this.initIndex++;
         return this;
     }
 
-    //same as add except for the once property thats added to the component.
-    //once makes component disposable. When compnent get's called first time the once property is set to true.
-    ChainWork.prototype.once = function(name, settings) {
+    ChainWork.prototype.once = function(name, settings, isParallel) {
+        //same as add except for the once property thats added to the component.
+        //once makes component disposable. When compnent get's called first time the once property is set to true.
+        if(!isParallel) {
+            this.activeParallel = null;
+        }
         var component = this._add(arguments);
         component['once'] = false;
         this.chain.push(component);
         this.initIndex++;
+        return this;
+    }
+
+    ChainWork.prototype.newParCollector = function() {
+        this.parallels[++this.parallelsCount] = [];
+        return this.parallelsCount;
+    }
+
+    ChainWork.prototype.par = function(name, settings) {
+        var component = this._add(arguments);
+        if(!this.activeParallel) {
+            this.activeParallel = this.newParCollector();
+
+            this.add('parallel', {uid: this.activeParallel}, true);
+        }
+        console.log(this.activeParallel);
+        this.parallels[this.activeParallel].push(component);
+        
         return this;
     }
 
@@ -342,21 +385,6 @@ var ChainWork = (function () {
         });
         return this;
     }
-
-
-    //Reset is now part of Chainwork and runs instantly like chain.play() but not as part of the chain
-    // ChainWork.prototype.reset = function(args) {
-    //     var args = args || {};
-    //     //Dont be picky
-    //     var index = args.toIndex || args.toindex || args.index || args.indexTo || args.indexto || 0;
-    //     this.add({
-    //         componentName: 'reset',
-    //         settings: {
-    //             index: index
-    //         }
-    //     });
-    //     return this;
-    // }
 
     ChainWork.prototype.if = function(fn, component) {
         this.add({

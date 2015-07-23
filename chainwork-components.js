@@ -67,7 +67,7 @@ components.test = {
         console.log('test component');
         setTimeout(function() {
             self.parent.componentDone();
-        });
+        },1000);
     }
 };
 
