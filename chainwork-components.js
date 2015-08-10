@@ -823,3 +823,95 @@ components.imagePreload = {
         }
     }
 };
+
+
+/*
+---
+name: Dialog
+description: Dialog based on bootstrap. Runs standalone, no js or css implementation needed
+
+example:
+var chain = new ChainWork({debug: true, autoPlay: true})
+    .add('dialog', {
+        'title': function() {
+            return 'Hvað er að frétta?'
+        },
+        'message': function() {
+            return $('.dialog').html();
+        }
+    });
+
+notes: prefix can optionaly have tailings slash, its added anyway
+
+TODO
+- Add data-close attributes
+- Fine tune animations
+...
+*/
+
+
+components.dialog = {
+    name: 'dialog',
+    settings: {
+        title: '',
+        message: '',
+        size: 'normal'//large small
+    },
+    job: function(){
+        var sizeMap = {
+            'small': 'chain_modal-sm',
+            'normal': '',
+            'large': 'chain_modal-lg'
+        }
+        var sizeClass = sizeMap[this.settings.size];
+        var template =  '<div class="modal-backdrop"></div>' +
+                        '<div class="chain_modal"><div class="chain_dialog '+ sizeClass + '">' +
+                            '<div class="modal-content">' +
+                                '<div class="modal-header">' +
+                                    '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">×</span></button>' +
+                                    '<h4 class="modal-title" id="myModalLabel">'+ this.settings.title() +'</h4>' +
+                                '</div>' +
+                                '<div class="modal-body">' +
+                                    '<p>' + this.settings.message() + '</p>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div></div>';
+
+        var styles = '<style>.chain_modal,.modal-backdrop{position:fixed;top:0;right:0;bottom:0;left:0}.modal-backdrop{z-index:1040;background-color:#000;opacity:.5}@-webkit-keyframes fadeInHalf{0%{opacity:0}100%{opacity:.5}}@keyframes fadeIn{0%{opacity:0}100%{opacity:.5}}.fadeInHalf{-webkit-animation-name:fadeInHalf;animation-name:fadeInHalf;animation-duration:1s;animation-fill-mode:both}.fadeInDownBig,.fadeInHalf{-webkit-animation-fill-mode:both;-webkit-animation-duration:1s}@-webkit-keyframes fadeInDownBig{0%{opacity:0;-webkit-transform:translate3d(0,-2000px,0);transform:translate3d(0,-2000px,0)}100%{opacity:1;-webkit-transform:none;transform:none}}@keyframes fadeInDownBig{0%{opacity:0;-webkit-transform:translate3d(0,-2000px,0);transform:translate3d(0,-2000px,0)}100%{opacity:1;-webkit-transform:none;transform:none}}.fadeInDownBig{-webkit-animation-name:fadeInDownBig;animation-name:fadeInDownBig;animation-duration:1s;animation-fill-mode:both}@-webkit-keyframes fadeOutHalf{0%{opacity:.5}100%{opacity:0}}@keyframes fadeOutHalf{0%{opacity:.5}100%{opacity:0}}.fadeOutHalf{-webkit-animation-name:fadeOutHalf;animation-name:fadeOutHalf;animation-duration:1s;animation-fill-mode:both}.fadeOutDownBig,.fadeOutHalf{-webkit-animation-fill-mode:both;-webkit-animation-duration:1s}@-webkit-keyframes fadeOutDownBig{0%{opacity:1;-webkit-transform:none;transform:none}100%{opacity:0;-webkit-transform:translate3d(0,-2000px,0);transform:translate3d(0,-2000px,0)}}@keyframes fadeOutDownBig{0%{opacity:1;-webkit-transform:none;transform:none}100%{opacity:0;-webkit-transform:translate3d(0,-2000px,0);transform:translate3d(0,-2000px,0)}}.fadeOutDownBig{-webkit-animation-name:fadeOutDownBig;animation-name:fadeOutDownBig;animation-duration:1s;animation-fill-mode:both}.chain_modal{z-index:1050;overflow:hidden;-webkit-overflow-scrolling:touch;outline:0}.chain_dialog{position:relative;width:auto;margin:10px}.modal-header .close{margin-top:-2px}.modal-title{margin:0;line-height:1.42857143;font-size:18px;font-weight:500;font-family:#333}button.close{-webkit-appearance:none;padding:0;cursor:pointer;background:0 0;border:0}.modal-content{position:relative;background-color:#fff;-webkit-background-clip:padding-box;background-clip:padding-box;border:1px solid #999;border:1px solid rgba(0,0,0,.2);border-radius:6px;outline:0;-webkit-box-shadow:0 3px 9px rgba(0,0,0,.5);box-shadow:0 3px 9px rgba(0,0,0,.5)}.modal-header{min-height:16.43px;padding:15px;border-bottom:1px solid #e5e5e5}.modal-body{position:relative;padding:15px}.close{float:right;font-size:21px;font-weight:700;line-height:1;color:#000;text-shadow:0 1px 0 #fff;filter:alpha(opacity=20);opacity:.2}@media (min-width:768px){.chain_dialog{width:600px;margin:30px auto}.modal-content{-webkit-box-shadow:0 5px 15px rgba(0,0,0,.5);box-shadow:0 5px 15px rgba(0,0,0,.5)}.chain_modal-sm{width:300px}}@media (min-width:992px){.chain_modal-lg{width:900px}}</style>';
+        var close = function() {
+            $('.modal-backdrop').addClass('fadeOutHalf').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){});
+
+            $('.chain_dialog').addClass('fadeOutDownBig').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                $elements.remove();
+                $styles.remove();
+            });
+        }
+        var stylesCompiler =  _.template(styles);
+        var $styles = $(stylesCompiler());
+        $('body').append($styles);
+
+        var compiler = _.template(template);
+        var $elements = $(compiler());
+        
+        $elements.find('.close').on('click', function() {
+            close();
+        });
+
+        $(document).on('click', function(e) {
+            if($(e.target).hasClass('chain_modal')) {
+                close();
+            }
+        });
+        $('body').append($elements);
+        //animate dialog in
+        $('.modal-backdrop').addClass('fadeInHalf').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass('fadeInHalf');
+        });
+
+        $('.chain_dialog').addClass('fadeInDownBig').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass('fadeInDownBig');
+        });
+
+        this.parent.componentDone();
+    }
+};

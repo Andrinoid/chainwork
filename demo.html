@@ -2,6 +2,7 @@
 
 <head>
     <title>Chainwork.js Demo</title>
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.6/animate.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
     <script src="chainwork.js"></script>
@@ -66,16 +67,17 @@
         background: lightblue;
     }
     </style>
+
+    
+
     <script>
+
     var chain = new ChainWork({debug: true})
-    .par('test')
-    .par('test')
-    .par('test')
-    .pause()
-    .add('test')
-    .add('test')
-    .add('test')
-    .add('test');
+    .add('dialog', {
+        title: function() {return 'hello'},
+        message: function() {return 'world'},
+        size: 'large'
+    });
 
 
 
