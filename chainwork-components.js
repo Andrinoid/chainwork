@@ -913,3 +913,12 @@ components.dialog = {
         this.parent.componentDone();
     }
 };
+
+//simple solution to close dialogs in the chain
+components.dialogsClose = {
+    name: 'dialogsClose',
+    job: function() {
+        $('.chain_modal').trigger('click');
+        this.parent.componentDone();
+    }
+};
