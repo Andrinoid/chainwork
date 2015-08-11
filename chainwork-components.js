@@ -79,7 +79,8 @@ components.fbLogin = {
         scope: null,
         forceRun: null,
         stopChainOnCancel: false,
-        onCancel: function() {}
+        onCancel: function() {},
+        onComplete: function(data) {}
     },
     pre: function() {
         if(this.parent.caller !== 'user' && !this.settings.forceRun) {
@@ -95,6 +96,7 @@ components.fbLogin = {
         FB.login(function(response) {
             if(response.authResponse) {
                 _.extend(self.provides.fbLogin, response);
+                self.settings.onComplete(response);
                 self.parent.componentDone();
             } else {
                 self.settings.onCancel();
@@ -113,6 +115,7 @@ components.fbLogin = {
         //console.log('post function'); this must be documented so lets keep this comment
     }
 };
+
 
 components.fbUserInfo = {
     //TODO check if user is connected before geting info
