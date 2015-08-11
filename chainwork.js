@@ -100,10 +100,20 @@ var ChainWork = (function () {
         _.extend(this.collection, provides);
     }
 
-    ChainWork.prototype.applySettings = function() {
+    ChainWork.prototype._applySettings = function() {
         //this method might have a problem because it overrides the component settings so it doesn't have the same init settings for next run
-        var settings = this.getChainProperty('settings');
+        var settings = _.mapValues(this.getChainProperty('settings'), function(value, key) {
+            //dont reveal function that start with on or call.
+            if(key.slice(0,2) === 'on' || key.slice(0,4) === 'call')
+                return value;
+            //reveal functions values. this allows the chain to give settings as function to reveal values on chain runtime insted of being collected as static values onLoad
+            if(typeOf(value) === 'function')
+                return value();
+            return value;
+        });
         var compontentSettings = this.getComponentProperty('settings');
+        console.log(_.assign(compontentSettings, settings));
+
         _.assign(compontentSettings, settings);
     }
    
@@ -176,7 +186,7 @@ var ChainWork = (function () {
             if(this.debug)
                 console.warn(this.chain[this.index].componentName, 'might be missing dependancy, please add them before. Missing:'+ depsErrorList.toString());
         }
-        this.applySettings();
+        this._applySettings();
         //inject the this class as parent of all components. so components can access it with this.parent
         this._setProperty('parent', this);
 
