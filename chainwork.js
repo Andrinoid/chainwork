@@ -7,7 +7,6 @@
 
 //TODO
 //Load external scripts async
-//Drop lodash dependancy in Chainwork and core components
 //lint
 
 //typeOf based on mootools typeOf
@@ -112,7 +111,6 @@ var ChainWork = (function () {
             return value;
         });
         var compontentSettings = this.getComponentProperty('settings');
-        console.log(_.assign(compontentSettings, settings));
 
         _.assign(compontentSettings, settings);
     }
@@ -205,16 +203,29 @@ var ChainWork = (function () {
         this.componentStamp();
     }
 
-    ChainWork.prototype.runSingle = function(componentRef) {
+    ChainWork.prototype.runSingle = function(componentRef, onDone) {
         var self = this;
-        var component = components[componentRef.componentName];
+        var component = _.cloneDeep(components[componentRef.componentName]);
         //apply settings
-        var refSettings = componentRef.settings;
+        //var refSettings = componentRef.settings;
+         var refSettings = _.mapValues(componentRef.settings, function(value, key) {
+            //dont reveal function that start with on or call.
+            if(key.slice(0,2) === 'on' || key.slice(0,4) === 'call')
+                return value;
+            //reveal functions values. this allows the chain to give settings as function to reveal values on chain runtime insted of being collected as static values onLoad
+            if(typeOf(value) === 'function')
+                return value();
+            return value;
+        });
+
         var compontentSettings = component['settings'];
         _.assign(compontentSettings, refSettings);
+
+
         //set parent property to component. We dont want the parallel components to affect the rest of the chain so the get a fake parent
         var fakeParent = {
             componentDone: function() {
+                onDone();
                 self.extendGlobal();//DEPRICATED
                 //We should collect componentDone calls to know when the par component is done and user could set it to whait for it
                 //we must know how many par component is in the collection maybe we can do it in the component
@@ -223,8 +234,9 @@ var ChainWork = (function () {
             stop: self.stop,
             debug: self.debug,
 
-        };
+        }
         component['parent'] = fakeParent;
+
         //Check if component has pre function
         if(component ? hasOwnProperty.call('pre') : false) {
             component.pre();
@@ -375,7 +387,7 @@ var ChainWork = (function () {
     //**********************
     ChainWork.prototype.par = function(name, settings) {
         //par collects all par siblings in a par collection. and replace all these components with one parallel component
-        //The parallel component has an id for the parallel collection and exetutes all component at ones
+        //The parallel component has an id for the parallel collection and exetutes all components at once
         var component = this._add(arguments);
         if(!this.activeParallel) {
             this.activeParallel = this._newParCollector();
@@ -460,10 +472,26 @@ var components = {
             //TODO Track the component done calls and give user settings controll to make this component whait for all
             var self = this;
             var collection = this.parent.parallels[this.settings.uid];
-            _.each(collection, function(c) {
-                self.parent.runSingle(c);
-            });
-            this.parent.componentDone();
+            var doneCounter = 0;
+            for(var i = 0; i < collection.length; i++) {
+                this.parent.runSingle(collection[i], function() {
+                    if(++doneCounter === collection.length) {
+                        self.parent.componentDone();
+                    }
+                });
+            }
+            // _.forEach(collection, function(c, i, coll) {
+            //     self.parent.runSingle(c, function() {
+            //         console.log(c.settings.onComplete+'');
+            //        if(++doneCounter === coll.length) {
+            //             self.parent.componentDone();
+            //        }
+            //     });
+
+            // });
+
+
+            //this.parent.componentDone();
         }
     },
 
