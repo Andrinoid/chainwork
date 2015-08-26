@@ -308,6 +308,16 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.seek = function(index) {
+        //if index is string wee try to find a call functoin by that name and get the index value fom the match
+        if(typeof(index) === 'string') {
+            _.forEach(this.chain, function(ref, i) {
+                if(_.findKey(ref, 'call') && ref.settings.call.name === index) {
+                    index = i;
+                    return;
+                }
+            });
+        }
+
         this.reset(index);
     }
 
