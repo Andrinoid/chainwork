@@ -20,7 +20,7 @@ components.test = {
     }
 };
 ```
-### Custom functions ### 
+### Custom functions
 If your logic is not reusable, it doesn't make sense to wrap it in a component right? ChainWork has a core component to deal with custom functions. In the example below we mix our test component with custom function that does the same.
 ```javascript
 var chain = new ChainWork()
