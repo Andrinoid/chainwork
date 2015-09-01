@@ -217,7 +217,6 @@ var ChainWork = (function () {
                 return value();
             return value;
         });
-
         var compontentSettings = component['settings'];
         _.assign(compontentSettings, refSettings);
 
