@@ -1,0 +1,99 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <!-- <link rel="stylesheet" href="css/grid.css"> -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/ionicons/1.5.2/css/ionicons.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.6/animate.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/gsap/1.16.1/TweenMax.min.js'></script>
+    <script src='../chainwork.js'></script>
+    <script src='../chainwork-components.js'></script>
+</head>
+
+<body>
+   <div class="signUpBox">
+       <form class="userInfo">
+           <div>
+               <input type="text" name="name" placeholder="Your name?" required="required">
+           </div>
+           <div>
+               <input type="text" name="email" placeholder="Your email?" required="required">
+           </div>
+           <div>
+               <div class="dropDown">Select the type of asset<i class="fa fa-caret-down caret"></i></div>
+               <div class="choices hidden">
+               <div class="triangle"></div>
+                   <div><span class="ion-checkmark"></span>Villa</div>
+                   <div><span class="ion-checkmark"></span>Apartment</div>
+                   <div><span class="ion-checkmark"></span>Cottage</div>
+               </div>
+           </div>
+       </form>
+       <div class="signup button push-down">Sign up</div>
+       <div class="clearfix push-down">
+       <p style="margin-bottom: 15px;">Or login with...</p>
+           <div class="col-1-2">
+               <div class="button btn-facebook"><i class="fa fa-facebook"></i>Facebook</div>
+           </div>
+           <div class="col-1-2">
+               <div class="button btn-twitter"><i class="fa fa-twitter"></i>Twitter</div>
+           </div>
+       </div>
+   </div>
+
+   <script>
+        $('.dropDown').one('click', function() {
+            $(this).addClass('open');
+            $('.choices').show();
+        });
+        $('.choices div').on('click', function() {
+            $(this).siblings().removeClass('active');
+            $(this).addClass('active');
+        });
+        $('.signup').on('click', function() {
+            chain.play();
+        });
+
+
+        var chainData = {};
+        var chain = new ChainWork({autoPlay: true})
+            .once('dialog', {
+                title: 'Welcome',
+                message: 'This is a bootstrap like dialog component. we only want to show this dialog once',
+            })
+            .add('pause')
+            .add('collectForm', {
+                formElement: '.userInfo',
+                onComplete: function(data) {
+                    chainData['form'] = data
+                }
+            })
+            .call(function() {
+                $('input').val('');
+                $('.dropDown').removeClass('open');
+                $('.choices , .choices div').hide();
+            })
+            .add('dialog', {
+                title: function() { return 'Nice! ' + chainData.form.name },
+                message: 'This is a bootstrap like dialog component. we only want to show this dialog once',
+              
+            })
+   </script>
+</body>
+<script>
+
+
+
+</script>
+
+</html>
+
+
+
+
+
