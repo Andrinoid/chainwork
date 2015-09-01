@@ -43,7 +43,7 @@ We now have a pretty useless but functional component. To add it to our chain we
 var chain = new ChainWork()
     .add('test', {delay: 500})
     .par('test')
-    .par('test' {delay: 3000})
+    .par('test', {delay: 3000})
     .call(function() {
         console.log('the end');
     });
