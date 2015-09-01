@@ -43,15 +43,15 @@ We now have a pretty useless but functional component. To add it to our chain we
 var chain = new ChainWork()
     .add('test', {delay: 500})
     .par('test')
-    .par('lest')
+    .par('test' {delay: 3000})
     .call(function() {
         console.log('the end');
     });
-    
+
 chain.play();
 //output
 //> test component (1sec)
-//> test component test component (1sec)
+//> (2)test component (3sec)
 //> the end
 ```
 
