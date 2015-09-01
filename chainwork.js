@@ -130,7 +130,7 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype._checkForOnce = function() {
-        //If the component has property once and it is true then skip it
+        //If the component has property once and if it is true then skip it
         if(this.chainHasProperty('once')) {
             if(this.getChainProperty('once')) {
                 this.componentDone();
