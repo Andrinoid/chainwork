@@ -134,13 +134,14 @@ var ChainWork = (function () {
         if(this.chainHasProperty('once')) {
             if(this.getChainProperty('once')) {
                 this.componentDone();
-                return;
+                return true;
             }
         }
         //if the component has property once then mark it as true to prevent it from running again.
         if(this.chainHasProperty('once')) {
             this.chain[this.index].once = true;
         }
+        return false;
     }
 
     ChainWork.prototype._checkForAssignment = function() {
@@ -171,11 +172,9 @@ var ChainWork = (function () {
 
     ChainWork.prototype.callchain = function (caller) {
         var self = this;
-        
         if(this._checkForOutOfRange()) return false;
-        this._checkForOnce();
+        if(this._checkForOnce()) return false;
         this._checkForAssignment();
-
         this.caller = caller || 'user'; // if caller is not defined we asume its a user action
        
         //if dependancies are listed run them before
