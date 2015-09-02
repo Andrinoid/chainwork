@@ -1,7 +1,7 @@
 ChainWork.js
 ========
 ChainWork allows you easily to create reusable components and construct your code in a maintainable and readable way. Consider the example below.
-[![flowchart](http://apps.tweecode.com/custom/chainwork/flowchart2.png)](http://apps.tweecode.com/custom/chainwork/flowchart.png)  
+[![flowchart](http://apps.tweecode.com/custom/chainwork/flowchart2.png)](http://apps.tweecode.com/custom/chainwork/flowchart2.png)  
 
 In short this code sets up Facebook SDK on page load and pauses the chain. Useraction calls chain.play() to resume. Now we authenticate the user and do three request to facebook api in parallel, notice the par method is used here instead of add. We use the data from previous components to generate the next url to facebook's api, process the data and compile a template.
 
