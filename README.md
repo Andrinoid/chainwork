@@ -38,11 +38,11 @@ components.test = {
 ```
 The settings property is an object were we define the options and default values for our component. We can override them when we add the component to our chain.  
 
-We now have a pretty useless but functional component. To add it to our chain we use the add or par methods. Use add to run component in serial and par to run components in parallel. In the example below we test both methods.
+We now have a pretty useless but functional component. To add it to our chain we use the add, par or once methods. Use add to run component in serial, par to run components in parallel and once to prevent component to run again(we'll cover this later). In the example below we test our component with add and par methods.
 ```javascript
 var chain = new ChainWork()
     .add('test', {delay: 500})
-    .par('test')
+    .par('test') //default delay 1000
     .par('test', {delay: 3000})
     .call(function() {
         console.log('the end');
@@ -50,7 +50,7 @@ var chain = new ChainWork()
 
 chain.play();
 //output
-//> test component (1sec)
+//> test component (0.5sec)
 //> (2)test component (3sec)
 //> the end
 ```
@@ -92,6 +92,15 @@ chain.play();
 ```
 
 ### Controls
+To run your chain you have two options as demostrated bellow.
+```javascript
+//1.
+var chain = new ChainWork({autoPlay: true}).add('test');
+//2.
+var chain = new ChainWork().add('test');
+chain.play()
+```
+Note that pause is actually component. It must be added to the chain flow and is therefore not a control method.  
 
 
 ### Usage
