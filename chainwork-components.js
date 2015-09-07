@@ -942,6 +942,24 @@ components.dialogsClose = {
 };
 
 //Kanon canvas componets
+/*
+---
+name: Kanon 
+description: Components for drawing images on canvas and retriving dataURL
+
+example:
+.once('kanonInit', {canvas: '#myCanvas'})
+.add('kanonDrawImage',{imageURL: 'images/feedbg.png'})
+.add('kanonDrawImage', {imageURL:'http://graph.facebook.com/791558995/picture?width=270&height=270', x: 20, y: 20})
+.add('kanonGetDataURL', {onComplete: function(data) {feedChainData.dataURL = data}})
+
+
+TODO
+- Add data-close attributes
+- Fine tune animations
+...
+*/
+
 
 components.kanonInit =  {
     name: 'kanonInit',
