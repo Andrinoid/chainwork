@@ -406,16 +406,16 @@ var ChainWork = (function () {
         return this;
     }
 
-    ChainWork.prototype.pause = function(args) {
-        var args = args || {};
-        this.add({
-            componentName: 'pause',
-            settings: {
-                delay: args.delay || null
-            }
-        });
-        return this;
-    }
+    // ChainWork.prototype.pause = function(args) {
+    //     var args = args || {};
+    //     this.add({
+    //         componentName: 'pause',
+    //         settings: {
+    //             delay: args.delay || null
+    //         }
+    //     });
+    //     return this;
+    // }
 
     ChainWork.prototype.call = function(fn) {
         var componentName;
