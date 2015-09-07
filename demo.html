@@ -1,0 +1,122 @@
+<html>
+
+<head>
+    <title>Chainwork.js Demo</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.6/animate.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src="chainwork.js"></script>
+    <script src="chainwork-components.js"></script>
+    <!-- for chain display -->
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/gsap/1.16.1/TweenMax.min.js'></script>
+</head>
+
+<body>
+    
+    <input type="checkbox"><span>Share on facebook</span>
+    <div>
+        <button onclick="chain.play();">chain.play()</button>
+        <button onclick="chain.seek(3);">chain.seek(3)</button>
+        <button onclick="chain.next();">chain.next()</button>
+        <button onclick="chain.reset();">chain.reset()</button>
+    </div>
+
+    <div class="chainDisplay">
+      <div class="cd_line"></div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <style>
+    .chainDisplay {
+        background: #272822;
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 260px;
+        color: white;
+        text-transform: uppercase;
+        font-family: arial;
+        font-size: 13px;
+        font-weight: bold;
+        padding: 20px;
+    }
+    .cd_line {
+        height: 0;
+        width: 3px;
+        background: #B7B8B3;
+        position: absolute;
+        top: 20px;
+        left: 48px;
+        z-index: -1;
+        transition: height 0.3s ease;
+    }
+    .cd_circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #a6e22d;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .cd_circle p {
+        position: absolute;
+        left: 66px;
+        top: 8px;
+    }
+    .cd_active {
+        background: lightblue;
+    }
+    </style>
+
+    <script>
+
+    var chain = new ChainWork({debug: true})
+    .add('dialog', {
+        title: function() {return 'hello'},
+        message: function() {return 'world'},
+        size: 'large'
+    });
+
+
+
+
+    var Cd = (function() {
+        
+        function Cd(chain) {
+            this.chain = chain;
+
+            this.line = $('.cd_line');
+        }
+
+        Cd.prototype.log = function() {
+            var self = this;
+            var chain = this.chain.chain;
+            chain.forEach(function(item) {
+                self._setLineHeight();
+                var $circle = $('<div class="cd_circle animated bounce"></div>').appendTo('.chainDisplay');
+                var $label = $('<p>'+item.componentName+'</p>').appendTo($circle);
+            });
+            this.setActive();
+        }
+
+        Cd.prototype.setActive = function() {
+            $('.cd_circle').eq(this.chain.index).addClass('cd_active');
+        }
+
+        Cd.prototype._setLineHeight = function() {
+            var circleHeight = 70;
+            this.line.css({'height': circleHeight * this.chain.chain.length});
+
+        }
+
+        return Cd;
+
+    })();
+    var cd = new Cd(chain);
+    cd.log();
+
+    </script>
+</body>
+
+</html>

@@ -63,26 +63,28 @@
         var chainData = {};
         var chain = new ChainWork({autoPlay: true})
             .once('dialog', {
-                title: 'Welcome',
-                message: 'This is a bootstrap like dialog component. we only want to show this dialog once',
+                title: 'I\'m a dialog component',
+                message: 'This message is only supposed to appear once so we add this component to the chain with with the once method.',
             })
-            .add('pause')
+            .once('pause')// why is pause added again on every run
             .add('collectForm', {
                 formElement: '.userInfo',
                 onComplete: function(data) {
                     chainData['form'] = data
                 }
             })
-            .call(function() {
+            .call(function cleanUp() {
                 $('input').val('');
                 $('.dropDown').removeClass('open');
                 $('.choices , .choices div').hide();
             })
             .add('dialog', {
                 title: function() { return 'Nice! ' + chainData.form.name },
-                message: 'This is a bootstrap like dialog component. we only want to show this dialog once',
-              
-            })
+                message: 'This is the last component of the chain. To allow users to submit the form again we must reset the chain with chain.reset(). That will be done onClose Notice that the first component we added with .once will not run again.',
+                onClose: function() {
+                    chain.reset();
+                }
+            });
    </script>
 </body>
 <script>
