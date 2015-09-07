@@ -8,6 +8,19 @@ requires: ChainWork
 ...
 */
 
+
+//get element from id, class or jquery object
+var normalizeElement = function(element) {
+    var type = typeOf(element);
+    if(type === 'element')
+        return element;
+    if(element instanceof jQuery)
+        return element[0];
+    if(type === 'string') {
+        return document.querySelector(element) || document.querySelector('#' + element) || document.querySelector('.' + element);
+    }
+};
+
 components.facebookInit =  {
     name: 'facebookInit',
     requirements: [],
@@ -924,6 +937,93 @@ components.dialogsClose = {
     name: 'dialogsClose',
     job: function() {
         $('.chain_modal').trigger('click');
+        this.parent.componentDone();
+    }
+};
+
+//Kanon canvas componets
+
+components.kanonInit =  {
+    name: 'kanonInit',
+    settings: {
+       canvas: null,
+       width: null,
+       height: null,
+    },
+    job: function() {
+        (function (bindTo) {
+            var Kanon = (function() {
+                function Kanon(args) {
+                    if(!args.canvas) {
+                        throw 'KanonInit: no canvas provided';
+                    }
+                    this.canvas = normalizeElement(args.canvas);
+                    this.context = this.canvas.getContext('2d');
+                    this.canvas.width = args.width || this.canvas.width;
+                    this.canvas.height = args.height || this.canvas.height;
+                }
+
+                Kanon.prototype.drawImage = function(img, x, y, width, height) {
+                    console.log(img);
+                    var width = width || img.width;
+                    var height = height || img.height;
+                    this.context.drawImage(img, x, y, width, height);
+                }
+
+                Kanon.prototype.getDataURL = function() {
+                    return this.canvas.toDataURL("image/png");
+                }
+
+                return Kanon
+
+            })();
+            bindTo.Kanon = Kanon;
+        })(window);
+
+        window.kanon = new Kanon(this.settings);
+        this.parent.componentDone();
+    }
+};
+
+
+components.kanonDrawImage = {
+    name: 'kanonDrawImage',
+    dependsOn: ['kanonInit'],
+    settings: {
+        imageURL: null,
+        x: null,
+        y: null,
+        width: null,
+        height: null
+    },
+    job: function() {
+        var self = this;
+        var draw = function() {
+            var width = self.settings.width || self.settings.image.width;
+            var height = self.settings.height || self.settings.image.height;
+            kanon.context.drawImage(self.settings.image, self.settings.x, self.settings.y, width, height);
+        };
+
+        Component.run('imagePreload', {
+            images: [this.settings.imageURL],
+            onComplete: function(list) {
+                self.settings.image = list[0];
+                draw();
+                self.parent.componentDone();
+            },
+        });
+       
+    }
+};
+
+components.kanonGetDataURL = {
+    name: 'kanonGetDataURL',
+    dependsOn: ['kanonInit'],
+    settings: {
+        onComplete: function() {}
+    },
+    job: function() {
+        this.settings.onComplete(kanon.getDataURL());
         this.parent.componentDone();
     }
 };
