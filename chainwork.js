@@ -299,6 +299,7 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.reset = function(index) {
+        this._checkForAssignment()
         this.isAbort = true;
         this.collection = {};
         this.stamps.length = index || 0;
@@ -406,17 +407,6 @@ var ChainWork = (function () {
         return this;
     }
 
-    // ChainWork.prototype.pause = function(args) {
-    //     var args = args || {};
-    //     this.add({
-    //         componentName: 'pause',
-    //         settings: {
-    //             delay: args.delay || null
-    //         }
-    //     });
-    //     return this;
-    // }
-
     ChainWork.prototype.call = function(fn) {
         var componentName;
         _.contains(fn.toString(), 'sync') ? componentName = 'callSync' : componentName = 'callAsync';
@@ -431,8 +421,6 @@ var ChainWork = (function () {
 
     return ChainWork;
 })();
-
-
 
  /*
 ---
@@ -488,18 +476,6 @@ var components = {
                     }
                 });
             }
-            // _.forEach(collection, function(c, i, coll) {
-            //     self.parent.runSingle(c, function() {
-            //         console.log(c.settings.onComplete+'');
-            //        if(++doneCounter === coll.length) {
-            //             self.parent.componentDone();
-            //        }
-            //     });
-
-            // });
-
-
-            //this.parent.componentDone();
         }
     },
 

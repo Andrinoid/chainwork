@@ -75,7 +75,14 @@
     .add('dialog', {
         title: function() {return 'hello'},
         message: function() {return 'world'},
-        size: 'large'
+        size: 'large',
+        onClose: function() {
+            chain.reset();
+        }
+    })
+    .add('pause')
+    .call(function() {
+        console.log('I should not run');
     });
 
 
