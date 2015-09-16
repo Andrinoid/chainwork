@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
     <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
-    <script src='//cdnjs.cloudflare.com/ajax/libs/gsap/1.16.1/TweenMax.min.js'></script>
     <script src='../chainwork.js'></script>
     <script src='../chainwork-components.js'></script>
 </head>
@@ -25,7 +24,7 @@
                <input type="text" name="email" placeholder="Your email?" required="required">
            </div>
            <div>
-               <div class="dropDown">Select the type of asset<i class="fa fa-caret-down caret"></i></div>
+               <div class="dropDown"><span>Select the type of asset</span><i class="fa fa-caret-down caret"></i></div>
                <div class="choices hidden">
                <div class="triangle"></div>
                    <div><span class="ion-checkmark"></span>Villa</div>
@@ -47,26 +46,30 @@
    </div>
 
    <script>
-        $('.dropDown').one('click', function() {
+        //Set events
+        $('.dropDown').on('click', function() {
             $(this).addClass('open');
             $('.choices').show();
         });
         $('.choices div').on('click', function() {
             $(this).siblings().removeClass('active');
             $(this).addClass('active');
+            $('.dropDown span').text($(this).text());
+            $(this).removeClass('open');
+            $('.choices').hide();
         });
         $('.signup').on('click', function() {
             chain.play();
         });
 
-
+        //ChainWork
         var chainData = {};
         var chain = new ChainWork({autoPlay: true})
             .once('dialog', {
                 title: 'I\'m a dialog component',
                 message: 'This message is only supposed to appear once so we add this component to the chain with with the once method.',
             })
-            .once('pause')// why is pause added again on every run
+            .once('pause')
             .add('collectForm', {
                 formElement: '.userInfo',
                 onComplete: function(data) {
@@ -76,22 +79,17 @@
             .call(function cleanUp() {
                 $('input').val('');
                 $('.dropDown').removeClass('open');
-                $('.choices , .choices div').hide();
+                $('.dropDown span').text('Select the type of asset');
             })
             .add('dialog', {
                 title: function() { return 'Nice! ' + chainData.form.name },
-                message: 'This is the last component of the chain. To allow users to submit the form again we must reset the chain with chain.reset(). That will be done onClose Notice that the first component we added with .once will not run again.',
+                message: 'This is the last component of the chain. To allow users to submit the form again we must reset the chain with chain.reset(). That will be done onClose. Notice that the first two components are added with .once will therefore not run again.',
                 onClose: function() {
                     chain.reset();
                 }
             });
    </script>
 </body>
-<script>
-
-
-
-</script>
 
 </html>
 

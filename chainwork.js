@@ -148,9 +148,11 @@ var ChainWork = (function () {
         //if component has assignment to next component or this component has assignment from previous we take care of it here.
         //We must add the assigned function to "this" for binding and give the function access to this class
         //This occurs if the previous component have added the assignToNext property to the component
+
         if(this.chainHasProperty('assigned')) {
             this.assignment = this.getChainProperty('assigned');
             this.assignment();
+            delete this.chain[this.index]['assigned'];
         }
 
         if(this.componentHasProperty('assignToNext')) {
@@ -299,7 +301,10 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.reset = function(index) {
-        this._checkForAssignment()
+        if(!this._checkForOutOfRange()) {
+            //if the chain is at the end the index is larger then the chain length at this point. so we cannot check for assignment on next component as it is not defined.
+            this._checkForAssignment();
+        }
         this.isAbort = true;
         this.collection = {};
         this.stamps.length = index || 0;
