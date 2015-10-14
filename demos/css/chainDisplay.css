@@ -1,0 +1,40 @@
+.chainDisplay {
+    background: #272822;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    color: white;
+    text-transform: uppercase;
+    font-family: arial;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 20px;
+}
+.cd_line {
+    height: 0;
+    width: 3px;
+    background: #B7B8B3;
+    position: absolute;
+    top: 20px;
+    left: 48px;
+    z-index: -1;
+    transition: height 0.3s ease;
+}
+.cd_circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #a6e22d;
+    margin-bottom: 15px;
+    position: relative;
+}
+.cd_circle p {
+    position: absolute;
+    left: 66px;
+    top: 8px;
+}
+.cd_active {
+    background: lightblue;
+}

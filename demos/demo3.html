@@ -1,0 +1,52 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+    <script src='../chainwork.js'></script>
+    <script src='../chainwork-components.js'></script>
+</head>
+    <div class="button">Order call</div>
+<body>
+
+    <script>
+        document.querySel
+
+        var orderCallchain = new ChainWork()
+        .add('dialog', {
+            title: 'Símtalspöntun',
+            message: '<div class="mailContent"><input type="text" placeholder="Þitt símanúmer" id="userPhone"><div class="button orderPrimePack" onclick="orderCallchain.play()">Senda</div></div>',
+            onClose: function() {
+                orderCallchain.reset();
+            }
+        })
+        .add('pause')
+        .add('sendMail', {
+            apiKey: '4cV-y5Bk1O_7I8AcvyVlqQ',
+            sender: 'haust@365.is',
+            subject: 'Panta skemmtipakkann',
+            reciver: function() {
+                return 'soluradgjof@365.is';
+            },
+            htmlBody: function() {
+                return 'Sími viðskiptavinar er: ' + $('#userPhone').val();
+            }
+        })
+        .call(function() {
+            $('.mailContent').html('<h2 class="tnx">Takk fyrir að hafa samband. Heyrumst!</h2>')
+        })
+        .add('pause', {delay: 1500})
+        .add('dialogsClose');
+    </script>
+</body>
+
+</html>
+
+
+
+
+
