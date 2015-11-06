@@ -5,6 +5,12 @@ ChainWork allows you easily to create reusable components and construct your cod
 
 In short this code sets up Facebook SDK on page load and pauses the chain. Useraction calls chain.play() to resume. Now we authenticate the user and do three request to facebook api in parallel, notice the par method is used here instead of add. We use the data from previous components to generate the next url to facebook's api, process the data and compile a template.
 
+###Live examples
+Check out the working examples of projects using chainwork.
+[demo1](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
+[demo2](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
+[demo3](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
+
 ### Components
 It's easy to create chain components. All chainWork components live in a object called components.  
 In this example we create a component that console logs "Hello component" after 1 second and then calls the chain.
