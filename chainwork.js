@@ -368,6 +368,13 @@ var ChainWork = (function () {
     }
 
     ChainWork.prototype.add = function(name, settings, isParallel) {
+        if(typeof(arguments[0]) === 'function') {
+            //if first argument is a function we port that function in a call component with the injection type
+            //call generates the call component and call this function back
+            this.call(arguments[0], 'add');
+            return this;
+        }
+
         if(!isParallel) {
             this.activeParallel = null;
         } 
@@ -380,6 +387,13 @@ var ChainWork = (function () {
     ChainWork.prototype.once = function(name, settings, isParallel) {
         //same as add except for the once property thats added to the component.
         //once makes component disposable. When compnent get's called first time the once property is set to true.
+        if(typeof(arguments[0]) === 'function') {
+            //if first argument is a function we port that function in a call component with the injection type
+            //call generates the call component and call this function back
+            this.call(arguments[0], 'once');
+            return this;
+        }
+
         if(!isParallel) {
             this.activeParallel = null;
         }
@@ -401,7 +415,15 @@ var ChainWork = (function () {
     //**********************
     ChainWork.prototype.par = function(name, settings) {
         //par collects all par siblings in a par collection. and replace all these components with one parallel component
-        //The parallel component has an id for the parallel collection and exetutes all components at once
+        //The parallel component has an id for the parallel collection and exetutes all components at "once"
+        
+        if(typeof(arguments[0]) === 'function') {
+            //if first argument is a function we port that function in a call component with the injection type
+            //call generates the call component and call this function back
+            this.call(arguments[0], 'par');
+            return this;
+        }
+
         var component = this._add(arguments);
         if(!this.activeParallel) {
             this.activeParallel = this._newParCollector();
@@ -412,10 +434,11 @@ var ChainWork = (function () {
         return this;
     }
 
-    ChainWork.prototype.call = function(fn) {
+    ChainWork.prototype.call = function(fn, injectType) {
+        var injectType = injectType || 'add';
         var componentName;
         _.contains(fn.toString(), 'sync') ? componentName = 'callSync' : componentName = 'callAsync';
-        this.add({
+        this[injectType]({// injectType can be add, once, par
             componentName: componentName,
             settings: {
                 call: fn                    
@@ -470,7 +493,6 @@ var components = {
             uid: null
         },
         job: function() {
-            //TODO Track the component done calls and give user settings controll to make this component whait for all
             var self = this;
             var collection = this.parent.parallels[this.settings.uid];
             var doneCounter = 0;
@@ -511,9 +533,11 @@ var components = {
         },
         job: function() {
             var self = this;
+            console.log('callsync');
             //If provided function has name extend it to this component name for debug and clarity
             this.name = this.settings.call.name ? 'callSync-' + this.settings.call.name : 'callAsync';
             var onComplete = function() {
+                console.log(self);
                 self.parent.componentDone();
             };
             this.settings.call(onComplete);

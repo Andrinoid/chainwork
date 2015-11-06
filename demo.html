@@ -107,7 +107,6 @@
             x: bb2.x + bb2.width + 1,
             y: bb2.y + bb2.height / 2
         }];
-        console.log(p);
         var d = {};
         var dis = [];
 
@@ -466,10 +465,23 @@
                 chain.reset();
             }
         })
-        .add('pause')
-        .call(function() {
-            console.log('I should not run');
-        });
+        .add(function(sync) {
+            console.log('add custom sync function ...');
+            setTimeout(function() {
+                sync();
+            }, 4000);
+        })
+        .once(function() {console.log('custom function only once')})
+        .par(function(sync) {
+            setTimeout(function() {
+                console.log('par siblings whait for it..');
+                sync();
+            }, 4000);
+        })
+        .par(function() {console.log('hello new par')})
+        .par(function() {console.log('hello new par')})
+        .add(function() {console.log('hello new add')});
+
     </script>
 </body>
 
