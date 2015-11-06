@@ -172,8 +172,8 @@ components.fbFeed = {
             picture: null,
             description: null,
         },
-        onPublished: null,
-        onDeclined: null,
+        onPublished: function() {},
+        onDeclined: function() {},
         forceRun: null
     },
      pre: function() {
@@ -769,8 +769,8 @@ components.spriteAnimation = {
 };
 
 
-//*
- ---
+/*
+-------
  name: imagePreload
  description: Simple image preloader designed to keep running no matter what
  license: MIT-style license.
@@ -874,6 +874,7 @@ components.dialog = {
         message: '',
         size: 'normal',//large small
         onClose: function() {},
+        onOpen: function() {},
     },
     job: function(){
         var self = this;
@@ -891,7 +892,7 @@ components.dialog = {
                                     '<h4 class="modal-title" id="myModalLabel">'+ this.settings.title +'</h4>' +
                                 '</div>' +
                                 '<div class="modal-body">' +
-                                    '<p>' + this.settings.message + '</p>' +
+                                    '<div>' + this.settings.message + '</div>' +
                                 '</div>' +
                             '</div>' +
                         '</div></div>';
@@ -913,6 +914,9 @@ components.dialog = {
 
         var compiler = _.template(template);
         var $elements = $(compiler());
+        setTimeout(function() {
+            self.settings.onOpen();
+        })
         
         $elements.find('.close').on('click', function() {
             close();
