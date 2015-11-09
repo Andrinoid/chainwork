@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.6/animate.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+
     <script src="chainwork.js"></script>
     <script src="chainwork-components.js"></script>
     <!-- for chain display -->
@@ -450,38 +452,44 @@
 
 
 
-    var chain = new ChainWork({
-            debug: true
-        })
-        .add('dialog', {
-            title: function() {
-                return 'hello'
-            },
-            message: function() {
-                return 'world'
-            },
-            size: 'large',
-            onClose: function() {
-                chain.reset();
+    var chain = new ChainWork()
+        .add('get', {
+            url: 'http://apis.is/car',
+            data: {'number': 'bg230'},
+            onComplete: function(rsp) {
+                console.log(rsp);
             }
         })
-        .add(function(sync) {
-            console.log('add custom sync function ...');
-            setTimeout(function() {
-                sync();
-            }, 4000);
+        .par('get', {
+            url: 'http://apis.is/car',
+            data: {'number': 'ly584'},
+            onComplete: function(rsp) {
+                console.log(rsp);
+            }
         })
-        .once(function() {console.log('custom function only once')})
-        .par(function(sync) {
-            setTimeout(function() {
-                console.log('par siblings whait for it..');
-                sync();
-            }, 4000);
+        .par('get', {
+            url: 'http://apis.is/car',
+            data: {'number': 'vv209'},
+            onComplete: function(rsp) {
+                console.log(rsp);
+            }
         })
-        .par(function() {console.log('hello new par')})
-        .par(function() {console.log('hello new par')})
-        .add(function() {console.log('hello new add')});
+        .par('get', {
+            url: 'http://apis.is/car',
+            data: {'number': 'pi130'},
+            onComplete: function(rsp) {
+                console.log(rsp);
+            }
+        })
+        .add('get', {
+            url: 'http://apis.is/car',
+            data: {'number': 'nf656'},
+            onComplete: function(rsp) {
+                console.log(rsp);
+            }
+        });
 
+        
     </script>
 </body>
 

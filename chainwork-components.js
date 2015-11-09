@@ -1054,3 +1054,86 @@ components.kanonGetDataURL = {
         this.parent.componentDone();
     }
 };
+
+//jQuery ajax wrappers
+/*
+---
+name: get, post 
+description: Components for making json requests via jquery
+
+example:
+.add('get', {
+    url: 'http://apis.is/car',
+    data: {'number': 'aa123'},
+    onComplete: function(rsp) {
+        console.log(rsp);
+    }
+})
+.par('get', {
+    url: 'http://apis.is/car',
+    data: {'number': 'bb123'},
+    onComplete: function(rsp) {
+        console.log(rsp);
+    }
+})
+.par('get', {
+    url: 'http://apis.is/car',
+    data: {'number': 'dd123'},
+    onComplete: function(rsp) {
+        console.log(rsp);
+    }
+})
+
+TODO
+- Add data-close attributes
+- Fine tune animations
+...
+*/
+components.get = {
+    name: 'get',
+    requirements: [],
+    provides: {},
+    settings: {
+        url: null,
+        data: null,
+        onComplete: function(response) {}
+    },
+    job: function() {
+        var self = this;
+        $.ajax({
+            'url': self.settings.url,
+            'type': 'GET',
+            'dataType': 'json',
+            'data': self.settings.data,
+            'success': function(response) {
+                self.settings.onComplete(response);
+                self.parent.componentDone();
+            }
+        });
+    }
+};
+
+components.post = {
+    name: 'post',
+    requirements: [],
+    provides: {},
+    settings: {
+        url: null,
+        data: null,
+        onComplete: function(response) {}
+    },
+    job: function() {
+        var self = this;
+
+        $.ajax({
+            'url': self.settings.url,
+            'type': 'POST',
+            'dataType': 'json',
+            'data': self.settings.data,
+            'success': function(response) {
+                self.settings.onComplete(response);
+                self.parent.componentDone();
+            }
+        });
+    }
+};
