@@ -8,8 +8,9 @@ In short this code sets up Facebook SDK on page load and pauses the chain. Usera
 ###Live examples
 Check out the working examples of projects using chainwork.
 [demo1](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
-[demo2](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
-[demo3](http://apps.tweecode.com/custom/chainwork/demos/demo1/)
+[demo2](http://apps.tweecode.com/custom/chainwork/demos/demo2/)
+[demo3](http://apps.tweecode.com/custom/chainwork/demos/demo3/)
+[demo4](http://apps.tweecode.com/custom/chainwork/demos/demo4/)
 
 ### Components
 It's easy to create chain components. All chainWork components live in a object called components.  
