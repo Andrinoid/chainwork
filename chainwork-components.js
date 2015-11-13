@@ -1171,3 +1171,136 @@ components.post = {
         });
     }
 };
+
+
+
+//Quiz component experiment
+//Just playing with the framework. the component obviously does to much but it show some potential in modular design with templates.
+/*
+---
+name: Quiz component
+description: takes in quiz data(quiestions, answers, endpoints) and generates quiz logic and ui. it extends the given data object with the result.
+Results is just the endpoint e.g 'e'. It's up to you to do somthing nice with it.
+
+quizData example:
+var quizData = {
+    questions: [
+        {
+            title: 'Question title',
+            question: 'Lorem ipsum dolor sit amet, cibo ponderum ad ius, an clita erroribus posidonium pri, affert omittantur definitiones usu id. Noster placerat consectetuer eu eam, velit dicunt ',
+            answers: [
+                {
+                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
+                    endpoint: 'a'
+                },
+                {
+                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
+                    endpoint: 'b'
+                },
+                {
+                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
+                    endpoint: 'c'
+                },
+                {
+                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
+                    endpoint: 'd'
+                }
+            ]
+        },
+    ],
+}
+
+example:
+var chain = new ChainWork({autoPlay: true})
+    .once('facebookInit', {
+        appId: 'YOUR APP ID'
+    })
+    .once('quiz', {
+        quizData: quizData,
+        parent: document.getElementById('quizContainer') //Defualt to document.body
+    })
+    .add('dialog', {
+        size: 'large',
+        message: function() {
+            var template = document.getElementById('dialogTmpl').innerHTML;
+            var compiler = _.template(template);
+            var dom = compiler(quizData);
+            return dom;
+        },
+        onOpen: function() {
+            $('.shareBtn').on('click', function() {
+                var btn = $(this);
+                Component.run('fbFeed', feedData);
+            });
+        },
+        onClose: function() {
+            chain.reset();
+        }
+    });
+...
+*/
+components.quiz = {
+    name: 'quiz',
+    settings: {
+       quizData: null,
+       parent: document.getElementsByTagName('body'),
+       template: '<% _.forEach(questions, function(item, i, thisArg){%> <div class="questionBox"> <div class="clear"> <div class="col-2-3"> <p class="titill"><strong><%- item.title %></strong></p><p class="subTitle"><%- item.question %></p><% _.forEach(item.answers, function(answer, k){%> <div class="checkbox"> <label> <input type="checkbox" value="<%- answer.endpoint %>"> <div class="text"> <%- answer.text %> </div></label> </div><%}); %> </div><div class="col-1-3"> <img class="scaleWithParent thumb" src="images/thumb3.png"> </div></div><div class="step"> <span>Skref <%- ++i %> af <%- thisArg.length %><i class="fa fa-arrow-circle-o-down"></i></span> </div></div><%}); %> <button class="button">Sjá niðurstöður</button>'
+    },
+    getResults: function() {
+        
+        var endpoints = 'abcdefghijklmnopqrstuvwxyz';
+        var endpoint = 'a';
+        var endpointCount = 0;
+        var re;
+        for (var i = 0; i < endpoints.length; i++) {
+            re = new RegExp(endpoints[i], 'g');
+            if ((this.settings.quizData.endCount.match(re) || []).length > endpointCount) {
+                endpoint = endpoints[i];
+                endpointCount = (this.settings.quizData.endCount.match(re) || []).length;
+            }
+        }
+        this.settings.quizData.resultEndpoint = endpoint;
+    },
+    cleanup: function() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++)  {
+            checkboxes[i].checked = false;
+        }
+    },
+    job: function() {
+        var self = this;
+        this.settings.quizData.endCount = '';
+        var compiler = _.template(this.settings.template);
+        var dom = compiler(this.settings.quizData);
+        $(this.settings.parent).append(dom);
+
+        $(this.settings.parent).find('input[type="checkbox"]').on('click', function() {
+            var checkbox = this;
+            if (checkbox.checked)
+                self.settings.quizData.endCount += checkbox.value;
+            else
+                self.settings.quizData.endCount = self.settings.quizData.endCount.replace(checkbox.value, '');
+        });
+        $(this.settings.parent).find(' .step span').click(function() {
+            var elm = $(this).closest('.questionBox').next();
+            try {
+                $('html, body').animate({
+                    scrollTop: elm.offset().top
+                }, 1000);
+            }
+            catch(e) {
+                //pass
+            } 
+        });
+        $(this.settings.parent).find('.button').on('click', function() {
+            self.getResults();
+            self.cleanup();
+            self.parent.play();
+            setTimeout(function() {
+                self.settings.quizData.endCount = '';
+                self.settings.quizData.resultEndpoint = '';
+            }, 1000);
+            
+        });
+    },
+}
