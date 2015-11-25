@@ -48,6 +48,7 @@ var ChainWork = (function () {
         this.isAbort = false;
         this.initIndex = 0; //index for added components before chain is started
         this.index = 0;
+        this.cycles = 0;
         //cache is not cleared by the chain, but can be overwritten by any component.
         this.cache = null;
 
@@ -164,7 +165,16 @@ var ChainWork = (function () {
     ChainWork.prototype._checkForOutOfRange = function() {
         //has chain reached the end?
         if(this.index >= this.chain.length) {
+            // if(this.autoReset) {
+            //     this.reset();
+            // }
+
             if(this.debug) console.log('chain has reached the end');
+            this.cycles++;
+            if(this.cycles>50) {
+                throw 'Chainwork is running an unexpected loop and was stoped after 50 cycles'
+                return false;  
+            } 
             //event triggered when chain has reached end
             this.onComplete(this.collection); 
             return true;
