@@ -1239,15 +1239,14 @@ var chain = new ChainWork({autoPlay: true})
     });
 ...
 */
-components.quiz = {
-    name: 'quiz',
+components.quizSetup = {
+    name: 'quizSetup',
     settings: {
        quizData: null,
        parent: document.getElementsByTagName('body'),
        template: '<% _.forEach(questions, function(item, i, thisArg){%> <div class="questionBox"> <div class="clear"> <div class="col-2-3"> <p class="titill"><strong><%- item.title %></strong></p><p class="subTitle"><%- item.question %></p><% _.forEach(item.answers, function(answer, k){%> <div class="checkbox"> <label> <input type="checkbox" value="<%- answer.endpoint %>"> <div class="text"> <%- answer.text %> </div></label> </div><%}); %> </div><div class="col-1-3"> <img class="scaleWithParent thumb" src="images/thumb3.png"> </div></div><div class="step"> <span>Skref <%- ++i %> af <%- thisArg.length %><i class="fa fa-arrow-circle-o-down"></i></span> </div></div><%}); %> <button class="button">Sjá niðurstöður</button>'
     },
-    getResults: function() {
-        
+    getResults: function(cb) {
         var endpoints = 'abcdefghijklmnopqrstuvwxyz';
         var endpoint = 'a';
         var endpointCount = 0;
@@ -1259,9 +1258,11 @@ components.quiz = {
                 endpointCount = (this.settings.quizData.endCount.match(re) || []).length;
             }
         }
-        this.settings.quizData.resultEndpoint = endpoint;
+        
+        this.reset();
+        cb(endpoint, this.settings.quizData.endCount);
     },
-    cleanup: function() {
+    reset: function() {
         var checkboxes = document.querySelectorAll('input[type="checkbox"]');
         for (var i = 0; i < checkboxes.length; i++)  {
             checkboxes[i].checked = false;
@@ -1269,6 +1270,7 @@ components.quiz = {
     },
     job: function() {
         var self = this;
+        this.parent[this.name] = this;
         this.settings.quizData.endCount = '';
         var compiler = _.template(this.settings.template);
         var dom = compiler(this.settings.quizData);
@@ -1292,15 +1294,24 @@ components.quiz = {
                 //pass
             } 
         });
-        $(this.settings.parent).find('.button').on('click', function() {
-            self.getResults();
-            self.cleanup();
-            self.parent.play();
-            setTimeout(function() {
-                self.settings.quizData.endCount = '';
-                self.settings.quizData.resultEndpoint = '';
-            }, 1000);
-            
-        });
+        this.parent.componentDone();
     },
 }
+
+components.quizResult = {
+    name: 'quizResult',
+    dependsOn: ['quizSetup'],
+    provides: {},
+    settings: {
+        onComplete: function(results) {}
+    },
+    job: function() {
+        var self = this;
+        this.parent[this.dependsOn[0]].getResults(function(results, answers) {
+            self.provides.quiz = {'results': results, answers: answers};
+            self.settings.onComplete(results);
+            self.parent.componentDone();
+        });
+    }
+}
+
