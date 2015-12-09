@@ -472,7 +472,7 @@ components.collectForm = {
             email
         its possible to override validation in settings.validation
     */
-    name: 'collectForm',
+name: 'collectForm',
     dependsOn: [],
     provides: {},
     settings: {
@@ -526,7 +526,7 @@ components.collectForm = {
             }
         };
         var formElm = normalizeElement(this.settings.formElement);
-        var ins = formElm.querySelectorAll('input');
+        var ins = formElm.querySelectorAll('input[type=text]');
         var errors = [];
         var collection = {};
         var validateKey = function(key) {
@@ -1314,4 +1314,33 @@ components.quizResult = {
         });
     }
 }
+
+
+/*
+---
+name: scrollTo
+description: Scroll to given element or top position with ease animation.
+example:
+    .par('scrollTo', {element: '.blacksection'})
+    .par('scrollTo', {top: '30'})
+    .par('scrollTo', {scrollElm: '.notBody'})
+*/
+
+components.scrollTo = {
+    name: 'scrollTo',
+    settings: {
+        scrollElm: 'html, body',
+        element: '',
+        top: 0,
+        duration: 1000
+    },
+    job: function() {
+        var self = this;
+        var top = this.settings.element ? $(this.settings.element).offset().top : this.settings.top;
+        $(this.settings.scrollElm).animate({
+            scrollTop: top
+        }, this.settings.duration, function() {self.parent.componentDone();});
+    }
+}
+
 
