@@ -344,6 +344,9 @@ components.firebaseSave = {
         suffix: '/entries',
         customCollection: null,
         customId: null,
+        customChildName: null,
+        unique: false,
+        onDublicates: function() {}
     },
     job: function() {
         var self = this;
@@ -359,6 +362,19 @@ components.firebaseSave = {
         //TODO clean collection before trying to save so firebase wont throw error
         ////////##################
         var instanceId;
+        dataRef.child(this.settings.customId).once('value', function(snapshot) {
+            var exists = (snapshot.val() !== null);
+            if (exists) {
+                self.settings.onDublicates();
+            } else {
+                //instanceId = dataRef.push(self.settings.customCollection);
+                instanceId = dataRef.child(self.settings.customId);
+                instanceId.child(self.settings.customChildName).set(self.settings.customCollection);
+                instanceId.child('timestamp').set(Firebase.ServerValue.TIMESTAMP);
+                counterRef.transaction(function (current_value) {
+                    return (current_value || 0) + 1;
+                });
+            }
         });
         this.parent.componentDone();  
     }
@@ -459,6 +475,7 @@ components.collectForm = {
             email
         its possible to override validation in settings.validation
     */
+    name: 'collectForm',
     dependsOn: [],
     provides: {},
     settings: {
@@ -883,6 +900,7 @@ components.dialog = {
     },
     job: function(){
         var self = this;
+
         var sizeMap = {
             'small': 'chain_modal-sm',
             'normal': '',
@@ -910,7 +928,9 @@ components.dialog = {
                             '</div>' +
                         '</div></div>';
 
+        var styles = '<style>body {overflow:hidden}.modal-body,.modal-title{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;line-height:1.42857143;color:#333}.chain_modal,.modal-backdrop{position:fixed;top:0;right:0;bottom:0;left:0}.modal-backdrop{z-index:1040;background-color:#000;opacity:.5}@-webkit-keyframes fadeInHalf{0%{opacity:0}100%{opacity:.5}}@keyframes fadeInHalf{0%{opacity:0}100%{opacity:.5}}.fadeInHalf{-webkit-animation-name:fadeInHalf;animation-name:fadeInHalf}.fadeInDownBig,.fadeInHalf{-webkit-animation-fill-mode:both;-webkit-animation-duration:.5s}.fadeInDownBig,.fadeInHalf,.fadeOutHalf{animation-duration:.5s;animation-fill-mode:both}@-webkit-keyframes fadeInDownBig{0%{opacity:0;-webkit-transform:translate3d(0,-500px,0);transform:translate3d(0,-500px,0)}100%{opacity:1;-webkit-transform:none;transform:none}}@keyframes fadeInDownBig{0%{opacity:0;-webkit-transform:translate3d(0,-500px,0);transform:translate3d(0,-500px,0)}100%{opacity:1;-webkit-transform:none;transform:none}}.fadeInDownBig{-webkit-animation-name:fadeInDownBig;animation-name:fadeInDownBig}@-webkit-keyframes fadeOutHalf{0%{opacity:.5}100%{opacity:0}}@keyframes fadeOutHalf{0%{opacity:.5}100%{opacity:0}}.fadeOutHalf{-webkit-animation-name:fadeOutHalf;animation-name:fadeOutHalf}.fadeOutDownBig,.fadeOutHalf{-webkit-animation-fill-mode:both;-webkit-animation-duration:.5s}@-webkit-keyframes fadeOutDownBig{0%{opacity:1;-webkit-transform:none;transform:none}100%{opacity:0;-webkit-transform:translate3d(0,-500px,0);transform:translate3d(0,-500px,0)}}@keyframes fadeOutDownBig{0%{opacity:1;-webkit-transform:none;transform:none}100%{opacity:0;-webkit-transform:translate3d(0,-500px,0);transform:translate3d(0,-500px,0)}}.fadeOutDownBig{-webkit-animation-name:fadeOutDownBig;animation-name:fadeOutDownBig;-webkit-animation-duration:1s;animation-duration:1s;-webkit-animation-fill-mode:both;animation-fill-mode:both}.chain_modal{z-index:1050;overflow-y:scroll;-webkit-overflow-scrolling:touch;outline:0}.chain_dialog{position:relative;width:auto;margin:10px}.modal-header .close{margin-top:-2px;position:static}.close.standalone{position:absolute;right:3px;top:-3px;z-index:1}.modal-title{margin:0;font-size:18px;font-weight:500}button.close{-webkit-appearance:none;padding:0;cursor:pointer;background:0 0;border:0}.modal-content{position:relative;background-color:#fff;background-clip:padding-box;border:1px solid #999;border:1px solid rgba(0,0,0,.2);border-radius:2px;outline:0;box-shadow:0 3px 9px rgba(0,0,0,.5)}.modal-header{min-height:16.43px;padding:15px;border-bottom:1px solid #e5e5e5}.modal-body{position:relative;padding:15px;font-size:14px}.close{float:right;font-size:21px;font-weight:700;line-height:1;color:#000;text-shadow:0 1px 0 #fff;opacity:.2}@media (min-width:768px){.chain_dialog{width:600px;margin:30px auto}.modal-content{box-shadow:0 5px 15px rgba(0,0,0,.5)}.chain_modal-sm{width:300px}}@media (min-width:992px){.chain_modal-lg{width:900px}}</style>';
         var close = function() {
+            self.settings.title = '';
             $('.modal-backdrop').addClass('fadeOutHalf');
             $('.chain_dialog').addClass('fadeOutDownBig');
             $('.modal-backdrop, .chain_modal').css({'pointer-events': 'none'});
@@ -1224,11 +1244,15 @@ var chain = new ChainWork({autoPlay: true})
     });
 ...
 */
+components.quiz = {
+    name: 'quiz',
     settings: {
        quizData: null,
        parent: document.getElementsByTagName('body'),
        template: '<% _.forEach(questions, function(item, i, thisArg){%> <div class="questionBox"> <div class="clear"> <div class="col-2-3"> <p class="titill"><strong><%- item.title %></strong></p><p class="subTitle"><%- item.question %></p><% _.forEach(item.answers, function(answer, k){%> <div class="checkbox"> <label> <input type="checkbox" value="<%- answer.endpoint %>"> <div class="text"> <%- answer.text %> </div></label> </div><%}); %> </div><div class="col-1-3"> <img class="scaleWithParent thumb" src="images/thumb3.png"> </div></div><div class="step"> <span>Skref <%- ++i %> af <%- thisArg.length %><i class="fa fa-arrow-circle-o-down"></i></span> </div></div><%}); %> <button class="button">Sjá niðurstöður</button>'
     },
+    getResults: function() {
+        
         var endpoints = 'abcdefghijklmnopqrstuvwxyz';
         var endpoint = 'a';
         var endpointCount = 0;
@@ -1240,7 +1264,9 @@ var chain = new ChainWork({autoPlay: true})
                 endpointCount = (this.settings.quizData.endCount.match(re) || []).length;
             }
         }
+        this.settings.quizData.resultEndpoint = endpoint;
     },
+    cleanup: function() {
         var checkboxes = document.querySelectorAll('input[type="checkbox"]');
         for (var i = 0; i < checkboxes.length; i++)  {
             checkboxes[i].checked = false;
@@ -1271,7 +1297,17 @@ var chain = new ChainWork({autoPlay: true})
                 //pass
             } 
         });
+        $(this.settings.parent).find('.button').on('click', function() {
+            self.getResults();
+            self.cleanup();
+            self.parent.play();
+            setTimeout(function() {
+                self.settings.quizData.endCount = '';
+                self.settings.quizData.resultEndpoint = '';
+            }, 1000);
+            
         });
+    },
 }
 
 components.scrollTo = {
@@ -1287,5 +1323,9 @@ components.scrollTo = {
         var top = this.settings.element ? $(this.settings.element).offset().top : this.settings.top;
         $(this.settings.scrollElm).animate({
             scrollTop: top
+        }, this.settings.duration);
+        setTimeout(function() {
+            self.parent.componentDone();
+        }, this.settings.duration);
     }
 }
