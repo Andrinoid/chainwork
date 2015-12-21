@@ -308,6 +308,7 @@ var ChainWork = (function () {
         this.isPlay = true;
         this.isAbort = false;
         this.callchain(caller);
+        return this;
     }
 
     ChainWork.prototype.reset = function(index) {
@@ -536,18 +537,14 @@ var components = {
 
     callSync: {
         name: 'callSync',
-        requirements: [],
-        provides: {},
         settings: {
             call: null
         },
         job: function() {
             var self = this;
-            console.log('callsync');
             //If provided function has name extend it to this component name for debug and clarity
             this.name = this.settings.call.name ? 'callSync-' + this.settings.call.name : 'callAsync';
             var onComplete = function() {
-                console.log(self);
                 self.parent.componentDone();
             };
             this.settings.call(onComplete);
