@@ -372,7 +372,9 @@ components.firebaseSave = {
                 instanceId.child(self.settings.customChildName).set(self.settings.customCollection);
                 instanceId.child('timestamp').set(Firebase.ServerValue.TIMESTAMP);
                 counterRef.transaction(function (current_value) {
-                    return (current_value || 0) + 1;
+                    var count = (current_value || 0) + 1;
+                    instanceId.child('countId').set(count)
+                    return count;
                 });
             }
         });
@@ -529,7 +531,7 @@ components.collectForm = {
             }
         };
         var formElm = normalizeElement(this.settings.formElement);
-        var ins = formElm.querySelectorAll('input[type=text]');
+        var ins = formElm.querySelectorAll('input[type=text], textarea');
         var errors = [];
         var collection = {};
         var validateKey = function(key) {
