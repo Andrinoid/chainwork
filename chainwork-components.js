@@ -431,7 +431,8 @@ components.firebaseAuth = {
         //authType: 'authAnonymously',
         //more types shall be added
         rememberMe: true,
-        onError: function() {}
+        onError: function(err, authData) {},
+        onSuccess: function(authData){},
     },
     job: function() {
         var self = this;
@@ -439,15 +440,16 @@ components.firebaseAuth = {
         
         if(this.settings.authType === 'authWithPassword') {
             fire.authWithPassword({
-                email: this.settings.email(), 
-                password: this.settings.password(),
+                email: this.settings.email, 
+                password: this.settings.password,
                 rememberMe: this.settings.rememberMe
             }, function(error, authData) {
                 if(error){
                     self.settings.onError(error);
                 }
                 else {
-                    self.parent.componentDone();  
+                    self.parent.componentDone();
+                    self.settings.onSuccess(authData);
                 }
             });
         }
@@ -457,7 +459,7 @@ components.firebaseAuth = {
                     self.settings.onError(error);
                 } 
                 else {
-                    console.log("Authenticated successfully with payload:", authData);
+                    self.settings.onSuccess(authData);
                 }
             });
         }
