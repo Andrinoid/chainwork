@@ -575,7 +575,12 @@ components.collectForm = {
             validateKey(ins[i].name);
             inputObj[ins[i].name] = ins[i].value;
             validateValue(ins[i].name, ins[i].value, inputObj, isRequired);
-            collection[ins[i].name] = ins[i].value;
+            
+            if(ins[i].getAttribute('type') === 'checkbox'){
+                collection[ins[i].name] = ins[i].checked;
+            }else{
+                collection[ins[i].name] = ins[i].value;
+            }
         }
         if(errors.length) {
              showErrors();                 
