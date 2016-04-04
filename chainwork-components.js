@@ -145,7 +145,7 @@ components.fbUserInfo = {
             this.settings.url = this.settings.url();
         }
         var url = this.settings.url || '/me';
-        FB.api(url, function(response) {
+        FB.api(url, {fields: 'id,name,email,first_name,last_name,age_range,link,gender,locale,picture,timezone,updated_time,verified'}, function(response) {
             if(!response.error) {
                 _.extend(self.provides.fbUserInfo, response);
                 self.settings.onComplete(response)
