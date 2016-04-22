@@ -73,23 +73,29 @@
     </style>
     <script>
 
-    //data cache
-    var data;
+//data cache
+var data;
 
-    //service
-    function getApiData(sync, resolve) {
-        console.log('foo function');
-        setTimeout(function() {
-            sync();
-            data = {foo: 'bar'}
-        }, 1000);
-    }
+//service
+function getApiData(sync) {
+    console.log('foo function');
+    setTimeout(function() {
+        sync();
+        data = {foo: 'bar'}
+    }, 1000);
+}
 
-    var data;
-    var chain2 = new ChainWork({autoPlay: true})
-        .add(function dostuff () { console.log('doing stuff before data') })
-        .add(getApiData)
-        .add(function doMoreStyff() { console.log('Look Ma no callback', data) });
+var data;
+var chain2 = new ChainWork({autoPlay: true})
+    .add(function dostuff () { console.log('doing stuff before data') })
+    .add('get', {
+        url: 'http://apis.is/car',
+        data: {'number': 'bg230'},
+        onComplete: function(rsp) {
+            data = rsp;
+        }
+    })
+    .add(function doMoreStyff() { console.log('Look Ma no callback', data) });
 
 
 
