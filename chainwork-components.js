@@ -1186,139 +1186,6 @@ components.post = {
     }
 };
 
-
-
-//Quiz component experiment
-//Just playing with the framework. the component obviously does to much but it show some potential in modular design with templates.
-/*
----
-name: Quiz component
-description: takes in quiz data(quiestions, answers, endpoints) and generates quiz logic and ui. it extends the given data object with the result.
-Results is just the endpoint e.g 'e'. It's up to you to do somthing nice with it.
-
-quizData example:
-var quizData = {
-    questions: [
-        {
-            title: 'Question title',
-            question: 'Lorem ipsum dolor sit amet, cibo ponderum ad ius, an clita erroribus posidonium pri, affert omittantur definitiones usu id. Noster placerat consectetuer eu eam, velit dicunt ',
-            answers: [
-                {
-                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
-                    endpoint: 'a'
-                },
-                {
-                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
-                    endpoint: 'b'
-                },
-                {
-                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
-                    endpoint: 'c'
-                },
-                {
-                    text: 'An libris scripta epicuri pro, vidisse lobortis id pro. Ea has platonem dignissim',
-                    endpoint: 'd'
-                }
-            ]
-        },
-    ],
-}
-
-example:
-var chain = new ChainWork({autoPlay: true})
-    .once('facebookInit', {
-        appId: 'YOUR APP ID'
-    })
-    .once('quiz', {
-        quizData: quizData,
-        parent: document.getElementById('quizContainer') //Defualt to document.body
-    })
-    .add('dialog', {
-        size: 'large',
-        message: function() {
-            var template = document.getElementById('dialogTmpl').innerHTML;
-            var compiler = _.template(template);
-            var dom = compiler(quizData);
-            return dom;
-        },
-        onOpen: function() {
-            $('.shareBtn').on('click', function() {
-                var btn = $(this);
-                Component.run('fbFeed', feedData);
-            });
-        },
-        onClose: function() {
-            chain.reset();
-        }
-    });
-...
-*/
-components.quiz = {
-    name: 'quiz',
-    settings: {
-       quizData: null,
-       parent: document.getElementsByTagName('body'),
-       template: '<% _.forEach(questions, function(item, i, thisArg){%> <div class="questionBox"> <div class="clear"> <div class="col-2-3"> <p class="titill"><strong><%- item.title %></strong></p><p class="subTitle"><%- item.question %></p><% _.forEach(item.answers, function(answer, k){%> <div class="checkbox"> <label> <input type="checkbox" value="<%- answer.endpoint %>"> <div class="text"> <%- answer.text %> </div></label> </div><%}); %> </div><div class="col-1-3"> <img class="scaleWithParent thumb" src="images/thumb3.png"> </div></div><div class="step"> <span>Skref <%- ++i %> af <%- thisArg.length %><i class="fa fa-arrow-circle-o-down"></i></span> </div></div><%}); %> <button class="button">Sjá niðurstöður</button>'
-    },
-    getResults: function() {
-        
-        var endpoints = 'abcdefghijklmnopqrstuvwxyz';
-        var endpoint = 'a';
-        var endpointCount = 0;
-        var re;
-        for (var i = 0; i < endpoints.length; i++) {
-            re = new RegExp(endpoints[i], 'g');
-            if ((this.settings.quizData.endCount.match(re) || []).length > endpointCount) {
-                endpoint = endpoints[i];
-                endpointCount = (this.settings.quizData.endCount.match(re) || []).length;
-            }
-        }
-        this.settings.quizData.resultEndpoint = endpoint;
-    },
-    cleanup: function() {
-        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        for (var i = 0; i < checkboxes.length; i++)  {
-            checkboxes[i].checked = false;
-        }
-    },
-    job: function() {
-        var self = this;
-        this.settings.quizData.endCount = '';
-        var compiler = _.template(this.settings.template);
-        var dom = compiler(this.settings.quizData);
-        $(this.settings.parent).append(dom);
-
-        $(this.settings.parent).find('input[type="checkbox"]').on('click', function() {
-            var checkbox = this;
-            if (checkbox.checked)
-                self.settings.quizData.endCount += checkbox.value;
-            else
-                self.settings.quizData.endCount = self.settings.quizData.endCount.replace(checkbox.value, '');
-        });
-        $(this.settings.parent).find(' .step span').click(function() {
-            var elm = $(this).closest('.questionBox').next();
-            try {
-                $('html, body').animate({
-                    scrollTop: elm.offset().top
-                }, 1000);
-            }
-            catch(e) {
-                //pass
-            } 
-        });
-        $(this.settings.parent).find('.button').on('click', function() {
-            self.getResults();
-            self.cleanup();
-            self.parent.play();
-            setTimeout(function() {
-                self.settings.quizData.endCount = '';
-                self.settings.quizData.resultEndpoint = '';
-            }, 1000);
-            
-        });
-    },
-}
-
 components.scrollTo = {
     name: 'scrollTo',
     settings: {
@@ -1336,5 +1203,134 @@ components.scrollTo = {
         setTimeout(function() {
             self.parent.componentDone();
         }, this.settings.duration);
+    }
+}
+
+components.quizSetup = {
+    name: 'quizSetup',
+    settings: {
+       quizData: null,
+       type: null, //can be "quiz" or "exam"
+       parent: document.getElementsByTagName('body'),
+       template: '<% _.forEach(questions, function(item, i, thisArg){%> <div class="questionBox"> <div class="clear"> <div class="col-2-3"> <p class="titill"><strong><%- item.title %></strong></p><p class="subTitle"><%- item.question %></p><% _.forEach(item.answers, function(answer, k){%> <div class="checkbox"> <label> <input type="checkbox" value="<%- answer.endpoint %>"> <div class="text"> <%- answer.text %> </div></label> </div><%}); %> </div><div class="col-1-3"> <img class="scaleWithParent thumb" src="images/thumb3.png"> </div></div><div class="step"> <span>Skref <%- ++i %> af <%- thisArg.length %><i class="fa fa-arrow-circle-o-down"></i></span> </div></div><%}); %> <button class="button">Sjá niðurstöður</button>'
+    },
+    getResults: function(cb) {
+        var endpoints = 'abcdefghijklmnopqrstuvwxyz';
+        var endpoint = 'a';
+        var endpointCount = 0;
+        var re;
+        for (var i = 0; i < endpoints.length; i++) {
+            re = new RegExp(endpoints[i], 'g');
+            if ((this.settings.quizData.endCount.match(re) || []).length > endpointCount) {
+                endpoint = endpoints[i];
+                endpointCount = (this.settings.quizData.endCount.match(re) || []).length;
+            }
+        }
+        
+        this.reset();
+        cb(endpoint);
+    },
+    getScore: function(cb) {
+
+        var correctAnswers = [];
+
+        $.each(this.settings.quizData.questions, function(key, question){
+            $.each(question.answers, function(k, answer){
+                if(answer.correct){
+                    correctAnswers[key] = answer.endpoint;
+                }
+            });
+        });
+
+        var score = 0;
+
+        $.each(this.settings.quizData.answers, function(key, value){
+            if(value == correctAnswers[key]){
+                score++;
+            }
+        });
+
+        var correctQuestionScore = correctAnswers.length / this.settings.quizData.resultEndpoints.length;
+
+        var resultEndpoint = Math.round(score * correctQuestionScore);
+        this.reset();
+        cb(resultEndpoint);
+    },
+    reset: function() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++)  {
+            checkboxes[i].checked = false;
+        }
+    },
+    job: function() {
+        var self = this;
+        this.parent[this.name] = this;
+        this.settings.quizData.endCount = '';
+        this.settings.quizData.answers = new Array(this.settings.quizData.questions.length);
+        var compiler = _.template(this.settings.template);
+        var dom = compiler(this.settings.quizData);
+        $(this.settings.parent).append(dom);
+
+        $(this.settings.parent).find('input[type="checkbox"]').on('change', function() {
+            var checkbox = this;
+            var parentIndex = checkbox.closest('.questionBox').getAttribute('value');
+
+            if (checkbox.checked){
+                self.settings.quizData.endCount += checkbox.value;
+                self.settings.quizData.answers[parentIndex] = checkbox.value;
+            }else{
+                self.settings.quizData.endCount = self.settings.quizData.endCount.replace(checkbox.value, '');
+            }
+        });
+
+        $(this.settings.parent).find(' .step span').click(function() {
+            var elm = $(this).closest('.questionBox').next();
+            try {
+                $('html, body').animate({
+                    scrollTop: elm.offset().top
+                }, 1000);
+            }
+            catch(e) {
+                //pass
+            } 
+        });
+        this.parent.componentDone();
+    },
+}
+
+components.quizResult = {
+    name: 'quizResult',
+    dependsOn: ['quizSetup'],
+    settings: {
+        onComplete: function(results) {}
+    },
+    job: function() {
+        var self = this;
+        var type = this.parent[this.dependsOn[0]].settings.type; //Can be exam or quiz
+
+        if(type === 'exam'){
+            this.parent[this.dependsOn[0]].getScore(function(rsp) {
+                self.settings.onComplete(rsp || 1);
+                self.parent.componentDone();
+            });
+        }else{
+            this.parent[this.dependsOn[0]].getResults(function(rsp) {
+                self.settings.onComplete(rsp);
+                self.parent.componentDone();
+            });
+        }
+    }
+}
+
+components.quizReset = {
+    name: 'quizReset',
+    dependsOn: ['quizSetup'],
+    settings: {
+        onComplete: function() {}
+    },
+    job: function() {
+        this.parent[this.dependsOn[0]].reset();
+        this.settings.onComplete();
+        this.parent.componentDone();
     }
 }
