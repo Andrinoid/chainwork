@@ -344,9 +344,7 @@ components.firebaseSave = {
         suffix: '/entries',
         customCollection: null,
         customId: null,
-        customChildName: null,
-        unique: false,
-        onDublicates: function() {}
+        customChildName: null
     },
     job: function() {
         var self = this;
@@ -357,27 +355,21 @@ components.firebaseSave = {
 
         var dataRef = new Firebase(this.settings.dataRefUrl + this.settings.prefix + this.settings.suffix);
         var counterRef = new Firebase(this.settings.dataRefUrl + this.settings.prefix + '/counter');
-       
-        ////////##################            
-        //TODO clean collection before trying to save so firebase wont throw error
-        ////////##################
+
         var instanceId;
-        dataRef.child(this.settings.customId).once('value', function(snapshot) {
-            var exists = (snapshot.val() !== null);
-            if (exists) {
-                self.settings.onDublicates();
-            } else {
-                //instanceId = dataRef.push(self.settings.customCollection);
-                instanceId = dataRef.child(self.settings.customId);
-                instanceId.child(self.settings.customChildName).set(self.settings.customCollection);
-                instanceId.child('timestamp').set(Firebase.ServerValue.TIMESTAMP);
-                counterRef.transaction(function (current_value) {
-                    var count = (current_value || 0) + 1;
-                    instanceId.child('countId').set(count)
-                    return count;
-                });
-            }
+        if(this.settings.customCollection) {
+            instanceId = dataRef.push(this.settings.customCollection);
+            // instanceId = dataRef.child(this.settings.customId);
+            // instanceId.child(this.settings.customChildName).set(this.settings.customCollection);
+        }
+        else {
+            instanceId = dataRef.push(this.parent.collection);
+        }
+        //This is a counter. Counts records
+        counterRef.transaction(function (current_value) {
+            return (current_value || 0) + 1;
         });
+        instanceId.child('timestamp').set(Firebase.ServerValue.TIMESTAMP);
         this.parent.componentDone();  
     }
 };
