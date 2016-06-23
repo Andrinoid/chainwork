@@ -1242,7 +1242,7 @@ components.quizSetup = {
             }
         });
 
-        var correctQuestionScore = correctAnswers.length / this.settings.quizData.resultEndpoints.length;
+        var correctQuestionScore = this.settings.quizData.resultEndpoints.length / correctAnswers.length;
 
         var resultEndpoint = Math.round(score * correctQuestionScore);
         this.reset();
